@@ -24,12 +24,13 @@ document.addEventListener("keyup", handleKeyUp, false);
 var keys = {};
 
 function checkCollision() {
-  var cameraX = GtankTranslate[0];
-  var cameraZ = GtankTranslate[2];
-  var terrainHeight = getTerHeight(cameraX, cameraZ);
+    var terrainHeight = getTerHeight(GtankTranslate[0], GtankTranslate[2]);
 
   if (GtankTranslate[1] <= terrainHeight) {
-    GtankTranslate = GinitialTranslate;
+    GtankTranslate[0] = GinitialTranslate[0];
+    GtankTranslate[1] = GinitialTranslate[1];
+    GtankTranslate[2] = GinitialTranslate[2];
+
     Gspeed = 0.0;
   }
 }
@@ -135,9 +136,9 @@ function handleMouseMove(event) {
   var newY = event.clientY;
 
   var deltaX = newX - lastMouseX;
-  cameraRotationY += deltaX;
-
   var deltaY = newY - lastMouseY;
+
+  cameraRotationY += deltaX;
   cameraRotationX += deltaY;
 
   cameraRotationX = Math.max(-90, Math.min(90, cameraRotationX));
