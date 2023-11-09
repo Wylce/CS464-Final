@@ -30,9 +30,9 @@ function checkCollision() {
   if (GplaneTranslate[1] <= terrainHeight) {
     GplaneTranslate[0] = GinitialTranslate[0];
     GplaneTranslate[1] = GinitialTranslate[1];
-    GplanekTranslate[2] = GinitialTranslate[2];
+    GplaneTranslate[2] = GinitialTranslate[2];
 
-    Gspeed = 0.0;
+    Gspeed = 0.005;
   }
 }
 
@@ -42,11 +42,12 @@ function handleKeyDown(event) {
   if (keys["w"]) {
     Gspeed += 0.0005;
   }
-  if (keys["s"]) {
+  else if (keys["s"]) {
     if (Gspeed > 0) {
       Gspeed -= 0.0005;
     }
   }
+
 }
 
 function handleKeyUp(event) {
@@ -56,17 +57,12 @@ function handleKeyUp(event) {
 function getTerHeight(x, z) {
   x = Math.floor(((x + 1) / 2.0) * exTexture.image.width);
   z = Math.floor(((z + 1) / 2.0) * exTexture.image.height);
-
-  console.log(x);
-  console.log(z);
   if (x >= exTexture.image.width) {
     x = exTexture.image.width;
   }
   if (z >= exTexture.image.height) {
     z = exTexture.image.height;
   }
-  console.log(x);
-  console.log(z);
 
   var res = 0.09;
   if (Gloaded == 1) {
@@ -129,10 +125,15 @@ function handleMouseUp(event) {
   mouseDown = false;
 }
 
+var numCalls = 0;
 function handleMouseMove(event) {
   if (!mouseDown) {
     return;
   }
+  else if (numCalls == 0) {
+    Gspeed = 0.005;
+  }
+
   var newX = event.clientX;
   var newY = event.clientY;
 
@@ -146,13 +147,20 @@ function handleMouseMove(event) {
   lastMouseY = newY;
 
   Gdirection = getplaneDirection(Gnormal);
+  numCalls++;
 }
 
+var stallStrength = 0.001;
 function genViewMatrix() {
+    if (mouseDown && Gspeed < 0.005) {
+        GplaneTranslate[1] -= stallStrength;
+    }
     
 GplaneTranslate[0] += Gspeed * Gdirection[0];
 GplaneTranslate[1] += Gspeed * Gdirection[1];
 GplaneTranslate[2] += Gspeed * Gdirection[2];
+
+console.log(Gspeed);
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
