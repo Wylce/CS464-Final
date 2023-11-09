@@ -150,10 +150,10 @@ function handleMouseMove(event) {
   numCalls++;
 }
 
-var stallStrength = 0.001;
+var stallStrength = 2000;
 function genViewMatrix() {
     if (mouseDown && Gspeed < 0.005) {
-        GplaneTranslate[1] -= stallStrength;
+        GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
     }
     
 GplaneTranslate[0] += Gspeed * Gdirection[0];
