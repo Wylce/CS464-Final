@@ -3,20 +3,21 @@ var Gpixels;
 var Gloaded;
 
 var Gspeed;
-var GtankView;
+var GplaneView;
 var Gdirection;
 var cameraRotationY;
 var cameraRotationX;
 var currentHeight;
 
-var GtankTranslate;
-var GtankTip;
-var GtankVMat;
+var GplaneTranslate;
+var GplaneTip;
+var GplaneVMat;
 
 var Gnormal;
 
 var saveme = 0.0;
 var GinitialTranslate = [0.0, 0.5, 0.0];
+var planeForwardDirection = [0, 0, 1];
 
 var canvas = document.getElementById("yourCanvasElement");
 document.addEventListener("keydown", handleKeyDown, false);
@@ -24,12 +25,12 @@ document.addEventListener("keyup", handleKeyUp, false);
 var keys = {};
 
 function checkCollision() {
-    var terrainHeight = getTerHeight(GtankTranslate[0], GtankTranslate[2]);
+    var terrainHeight = getTerHeight(GplaneTranslate[0], GplaneTranslate[2]);
 
-  if (GtankTranslate[1] <= terrainHeight) {
-    GtankTranslate[0] = GinitialTranslate[0];
-    GtankTranslate[1] = GinitialTranslate[1];
-    GtankTranslate[2] = GinitialTranslate[2];
+  if (GplaneTranslate[1] <= terrainHeight) {
+    GplaneTranslate[0] = GinitialTranslate[0];
+    GplaneTranslate[1] = GinitialTranslate[1];
+    GplanekTranslate[2] = GinitialTranslate[2];
 
     Gspeed = 0.0;
   }
@@ -141,42 +142,41 @@ function handleMouseMove(event) {
   cameraRotationY += deltaX;
   cameraRotationX += deltaY;
 
-  cameraRotationX = Math.max(-90, Math.min(90, cameraRotationX));
-
   lastMouseX = newX;
   lastMouseY = newY;
 
-  Gdirection = getTankDirection(Gnormal);
+  Gdirection = getplaneDirection(Gnormal);
 }
 
 function genViewMatrix() {
-  GtankTranslate[0] = GtankTranslate[0] + Gspeed * Gdirection[0];
-  GtankTranslate[1] = GtankTranslate[1] + Gspeed * Gdirection[1];
-  GtankTranslate[2] = GtankTranslate[2] + Gspeed * Gdirection[2];
+    
+GplaneTranslate[0] += Gspeed * Gdirection[0];
+GplaneTranslate[1] += Gspeed * Gdirection[1];
+GplaneTranslate[2] += Gspeed * Gdirection[2];
 
-  if (GtankTranslate[0] >= 1.0) {
-    GtankTranslate[0] = -0.99;
+  if (GplaneTranslate[0] >= 1.0) {
+    GplaneTranslate[0] = -0.99;
   }
-  if (GtankTranslate[2] >= 1.0) {
-    GtankTranslate[2] = -0.99;
+  if (GplaneTranslate[2] >= 1.0) {
+    GplaneTranslate[2] = -0.99;
   }
-  if (GtankTranslate[0] <= -1.0) {
-    GtankTranslate[0] = 0.99;
+  if (GplaneTranslate[0] <= -1.0) {
+    GplaneTranslate[0] = 0.99;
   }
-  if (GtankTranslate[2] <= -1.0) {
-    GtankTranslate[2] = 0.99;
+  if (GplaneTranslate[2] <= -1.0) {
+    GplaneTranslate[2] = 0.99;
   }
 
-  mat4.identity(GtankVMat);
+  mat4.identity(GplaneVMat);
   mat4.lookAt(
-    GtankTranslate,
+    GplaneTranslate,
     [
-      GtankTranslate[0] + Gdirection[0],
-      GtankTranslate[1] + Gdirection[1],
-      GtankTranslate[2] + Gdirection[2],
+      GplaneTranslate[0] + Gdirection[0],
+      GplaneTranslate[1] + Gdirection[1],
+      GplaneTranslate[2] + Gdirection[2],
     ],
     [0, 1, 0],
-    GtankVMat
+    GplaneVMat
   );
   checkCollision();
 }
@@ -211,29 +211,19 @@ function getNormal(x, z) {
   Gnormal = rn;
   return rn;
 }
-
-function getTankDirection(tnormal) {
-  var newRotationMatrix = mat4.create();
-  var newRotationMatrix2 = mat4.create();
-
-  mat4.identity(newRotationMatrix);
-  mat4.identity(newRotationMatrix2);
-
-  mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
-  mat4.rotate(newRotationMatrix2, -degToRad(cameraRotationX), [1, 0, 0]);
-
-  var adir = vec3.create();
-  adir[0] = 0.0;
-  adir[2] = 10.0;
-  adir[1] = 0;
-
-  adir = vec3.normalize(adir);
-  var rotationMatrixY = mat4.create();
-  mat4.identity(rotationMatrixY);
-  mat4.identity(rotationMatrixY);
-
-  adir = mat4.multiplyVec3(newRotationMatrix, adir);
-  adir = mat4.multiplyVec3(newRotationMatrix2, adir);
-
-  return adir;
-}
+function getplaneDirection(tnormal) {
+    var forwardDirection = vec3.create();
+    forwardDirection[0] = 0.0;
+    forwardDirection[2] = 1.0;
+    forwardDirection[1] = 0.0;
+  
+    var newRotationMatrix = mat4.create();
+    mat4.identity(newRotationMatrix);
+  
+    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
+    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+  
+    forwardDirection = mat4.multiplyVec3(newRotationMatrix, forwardDirection);
+  
+    return forwardDirection;
+  }

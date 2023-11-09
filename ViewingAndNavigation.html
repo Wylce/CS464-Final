@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Simple Terrain with Tank</title>
+    <title>Simple Terrain with plane</title>
     <meta name="generator" content="BBEdit 10.5" />
 
     <!-- load javascript helper code here -->
@@ -337,18 +337,18 @@
 
         Gspeed = 0.0;
         Gloaded = 0;
-        GtankView = mat4.create();
-        mat4.identity(GtankView);
+        GplaneView = mat4.create();
+        mat4.identity(GplaneView);
         Gdirection = [0.0, 0.0, 0.1];
         GdirectionTmp = [0.0, 0.0, 0.1];
 
         cameraRotationY = 0.0;
         cameraRotationX = 0.0;
 
-        GtankTranslate = [0.0, 0.5, 0.0];
-        GtankTip = mat4.create();
-        mat4.identity(GtankTip);
-        GtankVMat = mat4.lookAt(
+        GplaneTranslate = [0.0, 0.5, 0.0];
+        GplaneTip = mat4.create();
+        mat4.identity(GplaneTip);
+        GplaneVMat = mat4.lookAt(
           [0.0, 0.001, 0.0],
           [0.0, 0.001, 1.0],
           [0, 1, 0]
@@ -397,7 +397,7 @@
 
         mat4.identity(mvMatrix);
         genViewMatrix();
-        mat4.multiply(mvMatrix, GtankVMat);
+        mat4.multiply(mvMatrix, GplaneVMat);
 
         // draw our primitives
 
@@ -461,7 +461,7 @@
   <!-- the onload attribute specifies a javascript function to execute when the body tag is loaded into the browser -->
 
   <body onload="startHelloWebGL()">
-    <h1>Simple Terrain with Tank</h1>
+    <h1>Simple Terrain with plane</h1>
 
     <!-- embed the HTML5 Canvas Drawing object on the page.-->
     <!-- Name the canvas 'hellowebgl' for the javascript code. -->
