@@ -16,8 +16,11 @@ var GplaneVMat;
 var Gnormal;
 
 var saveme = 0.0;
+var zValue = 0.0;
+
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
+var rotate = [0, 1, 0];
 
 var canvas = document.getElementById("yourCanvasElement");
 document.addEventListener("keydown", handleKeyDown, false);
@@ -143,14 +146,26 @@ function handleMouseMove(event) {
   cameraRotationY += deltaX;
   cameraRotationX += deltaY;
 
+  if (deltaX > 0) {
+    if (zValue >= -1) {
+      zValue -= 0.1;
+    }
+    rotate = [0, 1, zValue]; // Mouse moves right
+  } else if (deltaX < 0) {
+    if (zValue >= 1) {
+      zValue += 0.1;
+    }
+    rotate = [0, 1, zValue]; // Mouse moves left
+  }
+
   lastMouseX = newX;
   lastMouseY = newY;
 
-  Gdirection = getplaneDirection(Gnormal);
   numCalls++;
 }
 
 var stallStrength = 2000;
+
 function genViewMatrix() {
     if (mouseDown && Gspeed < 0.005) {
         GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
@@ -159,8 +174,6 @@ function genViewMatrix() {
 GplaneTranslate[0] += Gspeed * Gdirection[0];
 GplaneTranslate[1] += Gspeed * Gdirection[1];
 GplaneTranslate[2] += Gspeed * Gdirection[2];
-
-console.log(Gspeed);
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
@@ -175,6 +188,8 @@ console.log(Gspeed);
     GplaneTranslate[2] = 0.99;
   }
 
+  Gdirection = getplaneDirection(Gnormal);
+
   mat4.identity(GplaneVMat);
   mat4.lookAt(
     GplaneTranslate,
@@ -183,7 +198,7 @@ console.log(Gspeed);
       GplaneTranslate[1] + Gdirection[1],
       GplaneTranslate[2] + Gdirection[2],
     ],
-    [0, 1, 0],
+    rotate,
     GplaneVMat
   );
   checkCollision();
