@@ -16,7 +16,6 @@ var GplaneVMat;
 var Gnormal;
 
 var saveme = 0.0;
-var zValue = 0.0;
 
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
@@ -129,6 +128,7 @@ function handleMouseUp(event) {
 }
 
 var numCalls = 0;
+var lastX = 0;
 function handleMouseMove(event) {
   if (!mouseDown) {
     return;
@@ -138,6 +138,7 @@ function handleMouseMove(event) {
   }
 
   var newX = event.clientX;
+
   var newY = event.clientY;
 
   var deltaX = newX - lastMouseX;
@@ -146,17 +147,7 @@ function handleMouseMove(event) {
   cameraRotationY += deltaX;
   cameraRotationX += deltaY;
 
-  if (deltaX > 0) {
-    if (zValue >= -1) {
-      zValue -= 0.1;
-    }
-    rotate = [0, 1, zValue]; // Mouse moves right
-  } else if (deltaX < 0) {
-    if (zValue >= 1) {
-      zValue += 0.1;
-    }
-    rotate = [0, 1, zValue]; // Mouse moves left
-  }
+  lastX = newX;
 
   lastMouseX = newX;
   lastMouseY = newY;
@@ -189,6 +180,8 @@ GplaneTranslate[2] += Gspeed * Gdirection[2];
   }
 
   Gdirection = getplaneDirection(Gnormal);
+
+  // console.log(Gdirection[0]);
 
   mat4.identity(GplaneVMat);
   mat4.lookAt(
