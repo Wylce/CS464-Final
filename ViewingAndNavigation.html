@@ -21,7 +21,7 @@
 
       void main(void) {
           vec4 tx_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-          gl_FragColor = vec4(tx_FragColor.rgb * vertexLightColor, tx_FragColor.a);
+          gl_FragColor = vec4(tx_FragColor.rgb, tx_FragColor.a);
       }
     </script>
 
@@ -44,12 +44,40 @@
 
       void main(void) {
           nVertexPosition[0] = aVertexPosition[0];
-          nVertexPosition[1] = 0.5;
+          nVertexPosition[1] = -1.0;
           nVertexPosition[2] = aVertexPosition[2];
           vTextureCoord = aTextureCoord;
           clrVec = texture2D(uSampler,vTextureCoord);
           nclrVec = normalize(clrVec);
           nVertexPosition[1] = sqrt(nclrVec[0]*nclrVec[0] + nclrVec[1]*nclrVec[1]+nclrVec[2]*nclrVec[2])*2.5 * 2.0/10.0;
+          gl_Position = uPMatrix * uMVMatrix * vec4(nVertexPosition, 1.0);
+
+          vertexLightColor = ambientColor;
+      }
+    </script>
+
+    <script id="entity-shader-vs" type="x-shader/x-vertex">
+      attribute vec3 aVertexPosition;
+      attribute vec2 aTextureCoord;
+
+      uniform mat4 uMVMatrix;
+      uniform mat4 uPMatrix;
+
+      varying vec2 vTextureCoord;
+      varying vec3 nVertexPosition;
+      uniform sampler2D uSampler;
+      varying vec4 clrVec;
+      varying vec4 nclrVec;
+
+      // lighting code
+      vec3 ambientColor = vec3(1.0, 1.0, 1.0); // a ambient light
+      varying vec3 vertexLightColor; // the calcualed lighting color
+
+      void main(void) {
+          nVertexPosition[0] = aVertexPosition[0];
+          nVertexPosition[1] = aVertexPosition[1];
+          nVertexPosition[2] = aVertexPosition[2];
+          vTextureCoord = aTextureCoord;
           gl_Position = uPMatrix * uMVMatrix * vec4(nVertexPosition, 1.0);
 
           vertexLightColor = ambientColor;
@@ -128,22 +156,36 @@
       }
 
       var shaderProgram;
+      var entityShader; //Shader program for non-terrain geometry (no height mapping)
+      var terrainShader; //Shader program for height-mapped terrain
 
       function initShaders() {
         var fragmentShader = getShader(gl, "shader-fs");
         var vertexShader = getShader(gl, "shader-vs");
+        var entityVertexShader = getShader(gl, "entity-shader-vs");
 
-        shaderProgram = gl.createProgram();
-        gl.attachShader(shaderProgram, vertexShader);
-        gl.attachShader(shaderProgram, fragmentShader);
-        gl.linkProgram(shaderProgram);
+        terrainShader = gl.createProgram();
+        gl.attachShader(terrainShader, vertexShader);
+        gl.attachShader(terrainShader, fragmentShader);
+        gl.linkProgram(terrainShader);
 
-        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        entityShader = gl.createProgram();
+        gl.attachShader(entityShader, entityVertexShader);
+        gl.attachShader(entityShader, fragmentShader);
+        gl.linkProgram(entityShader);
+
+        if (!gl.getProgramParameter(terrainShader, gl.LINK_STATUS)) {
           alert("Could not initialise shaders");
         }
 
-        gl.useProgram(shaderProgram);
+        shaderProgram = terrainShader;
+        setShaderUniforms();
+        shaderProgram = entityShader;
+        setShaderUniforms();
+      }
 
+      function setShaderUniforms(){
+        gl.useProgram(shaderProgram);
         shaderProgram.vertexPositionAttribute = gl.getAttribLocation(
           shaderProgram,
           "aVertexPosition"
@@ -225,7 +267,7 @@
         );
         terVertexPositionBuffer.itemSize = 3;
         terVertexPositionBuffer.numItems = 100 * 100;
-
+        
         terNormalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, terNormalBuffer);
 
@@ -284,18 +326,79 @@
         terVertexIndexBuffer.numItems = tvi;
       }
 
-      var exTexture;
-      function initTextures() {
-        exTexture = gl.createTexture();
-        exTexture.image = new Image();
-        exTexture.image.onload = function () {
-          handleLoadedTexture(exTexture);
-        };
+      var terRectVertexBuffer;
+      var terRectTextureCoordBuffer;
+      var terRectIndexBuffer;
 
-        exTexture.image.src = "box.png";
+      //Defines geometry for a rectangle that we can put sprite textures on
+      function initPlaneGeometry(){
+        terRectVertexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, terRectVertexBuffer)
+        rectVertices = [
+          -0.99, 0.0, 0.0,
+          0.99, 0.0, 0.0,
+          0.99, -0.99, 0.0,
+          -0.99, -0.99, 0.0
+        ];
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(rectVertices),
+          gl.STATIC_DRAW
+        );
+        terRectVertexBuffer.itemSize = 3;
+        terRectVertexBuffer.numItems = 4;
+
+        terRectTextureCoordBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, terRectTextureCoordBuffer);
+        rectTextureCoords = [
+        1.0, 1.0,
+          0.0, 1.0,
+          0.0, 0.0,
+          1.0, 0.0
+          ];
+
+
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array(rectTextureCoords),
+          gl.STATIC_DRAW
+        );
+        terRectTextureCoordBuffer.itemSize = 2;
+        terRectTextureCoordBuffer.numItems = 4;
+
+        terRectIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terRectIndexBuffer);
+        terRectVertexIndices = [
+          0, 1, 2,
+          2, 3, 0];
+        
+        gl.bufferData(
+          gl.ELEMENT_ARRAY_BUFFER,
+          new Uint16Array(terRectVertexIndices),
+          gl.STATIC_DRAW
+        );
+        terRectIndexBuffer.itemSize = 1;
+        terRectIndexBuffer.numItems = 6;
       }
 
-      function handleLoadedTexture(texture) {
+      var exTexture;
+      var displayTexture;
+      function initTextures(){
+        exTexture = initTexture("box.png", true);
+        displayTexture = initTexture("placeholder.jpg", false);
+      }
+
+      function initTexture(imageFileName, terrain){
+        var texture = gl.createTexture();
+        texture.image = new Image();
+        texture.image.onload = function() {
+          handleLoadedTexture(texture, terrain)
+        }
+        texture.image.src = imageFileName;
+        return texture;
+}
+
+      function handleLoadedTexture(texture, terrain) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         gl.texImage2D(
@@ -308,6 +411,12 @@
         );
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        if(!terrain){
+          return;
+        }
 
         var width = texture.image.width;
         var height = texture.image.height;
@@ -358,6 +467,7 @@
         // now build basic geometry objects.
         initShaders();
         initGeometry();
+        initPlaneGeometry();
         initTextures();
 
         // set mouse handlers for controlling rotation
@@ -382,7 +492,11 @@
       var yRot = 0;
       var zRot = 0;
 
+      var debugMode = false;
+
       function drawScene() {
+        shaderProgram = terrainShader;
+        gl.useProgram(shaderProgram);
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -397,7 +511,16 @@
 
         mat4.identity(mvMatrix);
         genViewMatrix();
-        mat4.multiply(mvMatrix, GplaneVMat);
+        if (debugMode){
+          var initMatrix = mat4.create();
+        mat4.identity(initMatrix);
+        mat4.translate(initMatrix, [0.0, 0.0, -3.0]);
+        //mat4.rotate(initMatrix, 1.0, [1,0,0]);
+        mat4.multiply(mvMatrix, initMatrix);
+          mat4.multiply(mvMatrix, objRotTransMat);
+        } else {
+          mat4.multiply(mvMatrix, GplaneVMat);
+        }
 
         // draw our primitives
 
@@ -435,6 +558,60 @@
           gl.UNSIGNED_SHORT,
           0
         );
+
+        drawDisplay();
+      }
+
+      //Draws a rectangle to put a cockpit texture on
+      function drawDisplay(){
+        shaderProgram = entityShader;
+        gl.useProgram(shaderProgram);
+        genViewMatrix();
+        
+        mat4.translate(mvMatrix, [GplaneTranslate[0], GplaneTranslate[1], GplaneTranslate[2]]);
+        mat4.rotate(mvMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
+        mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+        mat4.translate(mvMatrix, [0.0, 0.0, 0.05]); //put it in front of the camera
+
+        mat4.scale(mvMatrix, [0.04, 0.025, 0.03]); //scale to camera size
+        
+
+        // draw our primitives
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, terRectVertexBuffer);
+        gl.vertexAttribPointer(
+          shaderProgram.vertexPositionAttribute,
+          terRectVertexBuffer.itemSize,
+          gl.FLOAT,
+          false,
+          0,
+          0
+        );
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, terRectTextureCoordBuffer);
+        gl.vertexAttribPointer(
+          shaderProgram.textureCoordAttribute,
+          terRectTextureCoordBuffer.itemSize,
+          gl.FLOAT,
+          false,
+          0,
+          0
+        );
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+        gl.uniform1i(shaderProgram.samplerUniform, 0);
+        gl.uniform1i(shaderProgram.samplerUniform, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terRectIndexBuffer);
+
+        setMatrixUniforms();
+        gl.drawElements(
+          gl.TRIANGLES,
+          terRectIndexBuffer.numItems,
+          gl.UNSIGNED_SHORT,
+          0
+        );
       }
 
       var lastTime = 0;
@@ -443,6 +620,7 @@
         var timeNow = new Date().getTime();
         if (lastTime != 0) {
           var elapsed = timeNow - lastTime;
+          debugMode = document.getElementById("debug-enable").checked;
 
           // here we could change variables to adjust rotations for animation
         }
@@ -469,5 +647,10 @@
       If you're seeing this your web browser doesn't support the &lt;canvas>&gt;
       element. Ouch!
     </canvas>
+
+    <p>
+      <label for="debug-enable"><b>Debug Mode</b>:</label>
+      <input type="checkbox" id="debug-enable" name="debug" value="debug">
+    </p>
   </body>
 </html>

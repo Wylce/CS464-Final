@@ -21,6 +21,9 @@ var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
 var rotate = [0, 1, 0];
 
+var objRotTransMat = mat4.create();
+mat4.identity(objRotTransMat);
+
 var canvas = document.getElementById("yourCanvasElement");
 document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
@@ -49,7 +52,13 @@ function handleKeyDown(event) {
       Gspeed -= 0.0005;
     }
   }
-
+  if (debugMode){
+    if (keys["+"] || keys["="]) {
+      zoom(1.5);
+    } else if (keys["-"]) {
+      zoom(0.5);
+    } 
+  }
 }
 
 function handleKeyUp(event) {
@@ -116,9 +125,12 @@ function degToRad(degrees) {
 var mouseDown = false;
 var lastMouseX = null;
 var lastMouseY = null;
+var mouseButton;
 
 function handleMouseDown(event) {
+  console.log("mousedown");
   mouseDown = true;
+  mouseButton = event.button;
   lastMouseX = event.clientX;
   lastMouseY = event.clientY;
 }
@@ -133,6 +145,7 @@ function handleMouseMove(event) {
   if (!mouseDown) {
     return;
   }
+
   else if (numCalls == 0) {
     Gspeed = 0.005;
   }
@@ -144,15 +157,54 @@ function handleMouseMove(event) {
   var deltaX = newX - lastMouseX;
   var deltaY = newY - lastMouseY;
 
-  cameraRotationY += deltaX;
-  cameraRotationX += deltaY;
 
+  if (debugMode){
+    if (mouseButton == 2){
+      var newRotationMatrix = mat4.create();
+      mat4.identity(newRotationMatrix);
+      mat4.rotate(newRotationMatrix, degToRad (deltaX/10), [0,1,0]);
+
+      mat4.rotate(newRotationMatrix, degToRad(deltaY/10), [1,0,0]);
+      mat4.multiply(newRotationMatrix, objRotTransMat, objRotTransMat);
+  }
+
+    if (mouseButton == 0){
+      var translation = vec3.create();
+      translation = [deltaX/200.0, -1*(deltaY/200.0), 0.0]
+      var newTranslationMatrix = mat4.create();
+      mat4.identity(newTranslationMatrix);
+      mat4.translate(newTranslationMatrix, translation);
+      mat4.multiply(newTranslationMatrix, objRotTransMat, objRotTransMat);
+    }
+  } else {
+
+    //TODO: try and fix the way rotation reverses when it goes past 180 degrees
+
+    cameraRotationY += deltaX;
+    cameraRotationX = Math.min(cameraRotationX + deltaY, 90);
+    if (cameraRotationX <= -90){
+      cameraRotationX = -90;
+    }
+    //cameraRotationX = Math.max(cameraRotationX + deltaY, 0);
+    //cameraRotationX = (cameraRotationX + deltaY) % 90;
+    console.log(cameraRotationX);
+  }
   lastX = newX;
 
   lastMouseX = newX;
   lastMouseY = newY;
 
   numCalls++;
+}
+
+function zoom(factor) {
+  var newZoomMatrix = mat4.create();
+  mat4.identity(newZoomMatrix);
+  var sf = 1.0 * factor;
+  console.log(sf);
+  
+  mat4.scale(newZoomMatrix, [sf,sf,sf]);
+  mat4.multiply(newZoomMatrix, objRotTransMat, objRotTransMat);
 }
 
 var stallStrength = 2000;
