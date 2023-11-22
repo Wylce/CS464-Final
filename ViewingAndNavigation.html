@@ -385,7 +385,7 @@
       var displayTexture;
       function initTextures(){
         exTexture = initTexture("box.png", true);
-        displayTexture = initTexture("placeholder.jpg", false);
+        displayTexture = initTexture("cockpit.png", false);
       }
 
       function initTexture(imageFileName, terrain){
@@ -478,6 +478,9 @@
 
         gl.clearColor(0.4, 0.4, 0.4, 1.0);
         gl.enable(gl.DEPTH_TEST);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.enable(gl.BLEND);
+        
         // Draw the Scene
         Frames();
         // If doing an animation need to add code to rotate our geometry
@@ -571,9 +574,9 @@
         mat4.translate(mvMatrix, [GplaneTranslate[0], GplaneTranslate[1], GplaneTranslate[2]]);
         mat4.rotate(mvMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
         mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
-        mat4.translate(mvMatrix, [0.0, 0.0, 0.05]); //put it in front of the camera
+        mat4.translate(mvMatrix, [0.0, 0.02, 0.05]); //put it in front of the camera
 
-        mat4.scale(mvMatrix, [0.04, 0.025, 0.03]); //scale to camera size
+        mat4.scale(mvMatrix, [0.04, 0.05, 0.03]); //scale to camera size
         
 
         // draw our primitives
