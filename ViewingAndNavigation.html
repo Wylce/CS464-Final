@@ -385,7 +385,7 @@
       var displayTexture;
       function initTextures(){
         exTexture = initTexture("box.png", true);
-        displayTexture = initTexture("plane.png", false);
+        displayTexture = initTexture("cockpit.png", false);
       }
 
       function initTexture(imageFileName, terrain){
@@ -567,12 +567,6 @@
         drawDisplay();
       }
 
-      //Draws a rectangle to put a cockpit texture on
-      var prevDeltaX = 0;       //previous DeltaX
-      var banking = 0;          //amount to bank
-      var deltaXRepeatCount = 0;//how many repeat DeltaX's there have been (not moved mouse)
-      var resetThreshold = 5;   //how many repeat DeltaX's there need to be before reset to 0
-
       function drawDisplay(){
         shaderProgram = entityShader;
         gl.useProgram(shaderProgram);
@@ -580,29 +574,12 @@
         
         mat4.translate(mvMatrix, [GplaneTranslate[0], GplaneTranslate[1], GplaneTranslate[2]]);
         mat4.rotate(mvMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
-        mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
-
-        if (deltaX == prevDeltaX) {
-          deltaXRepeatCount++;
-          if (deltaXRepeatCount >= resetThreshold) {
-            banking = banking + 0.1 * (-banking);
-            deltaXRepeatCount = 0;
-            deltaX = deltaX + 0.1 * (-deltaX);
-          }
-        } else {
-          deltaXRepeatCount = 0;
-          banking = banking + 0.1 * (deltaX * 10 - banking);
-        }
-
-        mat4.rotate(mvMatrix, -degToRad(-banking), [0, 0, 1]);
-        
+        mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);        
 
         mat4.translate(mvMatrix, [0.0, 0.02, 0.05]); //put it in front of the camera
 
         mat4.scale(mvMatrix, [0.04, 0.05, 0.03]); //scale to camera size
         
-        prevDeltaX = deltaX;
-
         // draw our primitives
 
         gl.bindBuffer(gl.ARRAY_BUFFER, terRectVertexBuffer);

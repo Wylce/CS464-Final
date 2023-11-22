@@ -7,6 +7,7 @@ var GplaneView;
 var Gdirection;
 var cameraRotationY;
 var cameraRotationX;
+var cameraRotationZ;
 var currentHeight;
 
 var GplaneTranslate;
@@ -21,6 +22,10 @@ var deltaX
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
 var rotate = [0, 1, 0];
+var prevDeltaX = 0;       //previous DeltaX
+var banking = 0;          //amount to bank
+var deltaXRepeatCount = 0;//how many repeat DeltaX's there have been (not moved mouse)
+var resetThreshold = 5;   //how many repeat DeltaX's there need to be before reset to 0
 
 var objRotTransMat = mat4.create();
 mat4.identity(objRotTransMat);
@@ -291,6 +296,23 @@ function getplaneDirection(tnormal) {
   
     mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
     mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+
+    if (deltaX == prevDeltaX) {
+      deltaXRepeatCount++;
+      if (deltaXRepeatCount >= resetThreshold) {
+        banking = banking + 0.1 * (-banking);
+        deltaXRepeatCount = 0;
+        deltaX = deltaX + 0.1 * (-deltaX);
+      }
+    } else {
+      deltaXRepeatCount = 0;
+      banking = banking + 0.1 * (deltaX * 10 - banking);
+    }
+
+    cameraRotationZ = -banking;
+    mat4.rotate(mvMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
+
+    prevDeltaX = deltaX;
   
     forwardDirection = mat4.multiplyVec3(newRotationMatrix, forwardDirection);
   
