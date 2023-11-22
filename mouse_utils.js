@@ -16,6 +16,7 @@ var GplaneVMat;
 var Gnormal;
 
 var saveme = 0.0;
+var deltaX
 
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
@@ -128,7 +129,7 @@ var lastMouseY = null;
 var mouseButton;
 
 function handleMouseDown(event) {
-  console.log("mousedown");
+  // console.log("mousedown");
   mouseDown = true;
   mouseButton = event.button;
   lastMouseX = event.clientX;
@@ -154,7 +155,7 @@ function handleMouseMove(event) {
 
   var newY = event.clientY;
 
-  var deltaX = newX - lastMouseX;
+  deltaX = newX - lastMouseX;
   var deltaY = newY - lastMouseY;
 
 
@@ -187,7 +188,7 @@ function handleMouseMove(event) {
     }
     //cameraRotationX = Math.max(cameraRotationX + deltaY, 0);
     //cameraRotationX = (cameraRotationX + deltaY) % 90;
-    console.log(cameraRotationX);
+    // console.log(cameraRotationX);
   }
   lastX = newX;
 
@@ -201,7 +202,7 @@ function zoom(factor) {
   var newZoomMatrix = mat4.create();
   mat4.identity(newZoomMatrix);
   var sf = 1.0 * factor;
-  console.log(sf);
+  // console.log(sf);
   
   mat4.scale(newZoomMatrix, [sf,sf,sf]);
   mat4.multiply(newZoomMatrix, objRotTransMat, objRotTransMat);
