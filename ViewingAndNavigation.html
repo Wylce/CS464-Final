@@ -6,6 +6,7 @@
     <meta name="generator" content="BBEdit 10.5" />
 
     <!-- load javascript helper code here -->
+    <script type="text/javascript" src="terrain-generator.js"></script>
     <script type="text/javascript" src="glMatrix_util.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="mouse_utils.js"></script>
@@ -242,9 +243,14 @@
       var terVertexIndexBuffer;
       var terNormalBuffer;
 
+      var vertexDistance;
+
       function initGeometry() {
         terVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, terVertexPositionBuffer);
+
+        vertexDistance =  ((1 * 1.0) / 50.0 - 1.0) - ((2 * 1.0) / 50.0 - 1.0);
+        console.log(vertexDistance);
 
         vertices = [];
         nvertices = [];
@@ -381,6 +387,13 @@
         terRectIndexBuffer.numItems = 6;
       }
 
+      function mat4Copy(matrix){
+        var newMatrix = mat4.create();
+        mat4.identity(newMatrix);
+        mat4.multiply(newMatrix, matrix);
+        return newMatrix;
+      }
+
       var exTexture;
       var displayTexture;
       var explosionTexture;
@@ -501,6 +514,8 @@
 
       var debugMode = false;
 
+      var matrixStack = new Array();
+
       function drawScene() {
         shaderProgram = terrainShader;
         gl.useProgram(shaderProgram);
@@ -517,7 +532,10 @@
         );
 
         mat4.identity(mvMatrix);
+        //mat4.scale(mvMatrix, [0.3, 0.3, 0.3]);
         genViewMatrix();
+        //mat4.scale(GplaneVMat, [0.3, 0.3, 0.3]);
+        //mat4.scale(GplaneTranslate, [0.3, 0.3, 0.3]);
         if (debugMode){
           var initMatrix = mat4.create();
         mat4.identity(initMatrix);
@@ -530,42 +548,10 @@
         }
 
         // draw our primitives
+        matrixStack[0] = (mat4Copy(mvMatrix));
+        drawTerrain();
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, terVertexPositionBuffer);
-        gl.vertexAttribPointer(
-          shaderProgram.vertexPositionAttribute,
-          terVertexPositionBuffer.itemSize,
-          gl.FLOAT,
-          false,
-          0,
-          0
-        );
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, terVertexTextureCoordBuffer);
-        gl.vertexAttribPointer(
-          shaderProgram.textureCoordAttribute,
-          terVertexTextureCoordBuffer.itemSize,
-          gl.FLOAT,
-          false,
-          0,
-          0
-        );
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, exTexture);
-        gl.uniform1i(shaderProgram.samplerUniform, 0);
-        gl.uniform1i(shaderProgram.samplerUniform, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terVertexIndexBuffer);
-
-        setMatrixUniforms();
-        gl.drawElements(
-          gl.TRIANGLES,
-          terVertexIndexBuffer.numItems,
-          gl.UNSIGNED_SHORT,
-          0
-        );
-
+        mvMatrix = mat4Copy(matrixStack[0]);
         drawDisplay();
       }
 
