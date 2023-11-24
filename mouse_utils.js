@@ -55,16 +55,20 @@ function checkCollision() {
   }
 }
 
+var acceleration = 0.00005;
+var deceleration = 0.00001;
+var isAccelerating = false;
+var isBraking = false;
+
+
 function handleKeyDown(event) {
   keys[event.key] = true;
 
   if (keys["w"]) {
-    Gspeed += 0.0005;
+    isAccelerating = true;
   }
   else if (keys["s"]) {
-    if (Gspeed > 0) {
-      Gspeed -= 0.0005;
-    }
+    isBraking = true;
   }
   if (debugMode){
     if (keys["+"] || keys["="]) {
@@ -77,6 +81,13 @@ function handleKeyDown(event) {
 
 function handleKeyUp(event) {
   keys[event.key] = false;
+
+  if (event.key == "w") {
+    isAccelerating = false;
+  }
+  else if (event.key == "s") {
+    isBraking = false;
+  }
 }
 
 function getTerHeight(x, z) {
@@ -224,14 +235,25 @@ function zoom(factor) {
 var stallStrength = 2000;
 
 function genViewMatrix() {
-    if (mouseDown && Gspeed < 0.005) {
-        GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
-    }
-    if (displayExplosion == false) {
-      GplaneTranslate[0] += Gspeed * Gdirection[0];
-      GplaneTranslate[1] += Gspeed * Gdirection[1];
-      GplaneTranslate[2] += Gspeed * Gdirection[2];
-    }
+  if (isAccelerating && Gspeed < 0.005) {
+    Gspeed += acceleration;
+  } 
+  else if (!isAccelerating && Gspeed > 0) {
+    Gspeed -= deceleration;
+  }
+
+  if (isBraking && Gspeed > 0) {
+    Gspeed -= deceleration * 2;
+  }
+
+  if (mouseDown && Gspeed < 0.005) {
+      GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
+  }
+  if (displayExplosion == false) {
+    GplaneTranslate[0] += Gspeed * Gdirection[0];
+    GplaneTranslate[1] += Gspeed * Gdirection[1];
+    GplaneTranslate[2] += Gspeed * Gdirection[2];
+  }
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
