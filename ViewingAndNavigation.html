@@ -592,7 +592,7 @@
             deltaXRepeatCount = 0;
             deltaX = deltaX + 0.1 * (-deltaX);
           }
-        } else {
+        } else if (banking >= -90 && banking <= 90) {
           deltaXRepeatCount = 0;
           banking = banking + 0.1 * (deltaX * 10 - banking);
         }
