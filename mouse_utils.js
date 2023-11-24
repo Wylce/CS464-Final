@@ -20,7 +20,7 @@ var saveme = 0.0;
 var deltaX
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
-var rotate = [0, 1, 0];
+var upVector = [0, 1, 0];
 var prevDeltaX = 0;       //previous DeltaX
 var banking = 0;          //amount to bank
 var deltaXRepeatCount = 0;//how many repeat DeltaX's there have been (not moved mouse)
@@ -248,7 +248,7 @@ GplaneTranslate[2] += Gspeed * Gdirection[2];
       GplaneTranslate[1] + Gdirection[1],
       GplaneTranslate[2] + Gdirection[2],
     ],
-    rotate,
+    upVector,
     GplaneVMat
   );
   checkCollision();
@@ -307,9 +307,14 @@ function getplaneDirection(tnormal) {
     cameraRotationZ = -banking;
     mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
     mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
-    console.log('cameraRotationZ:', cameraRotationZ);
     mat4.rotate(newRotationMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
 
+    // updates Up Vector
+    var upRotationMatrix = mat4.create();
+    mat4.identity(upRotationMatrix);
+    mat4.rotate(upRotationMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
+    
+    upVector = mat4.multiplyVec3(upRotationMatrix, [0, 1, 0]);
 
     prevDeltaX = deltaX;
   
