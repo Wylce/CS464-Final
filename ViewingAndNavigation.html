@@ -453,6 +453,7 @@
 
         cameraRotationY = 0.0;
         cameraRotationX = 0.0;
+        cameraRotationZ = 0.0;
         deltaX = 0.0;
 
 
@@ -526,6 +527,7 @@
         } else {
           mat4.multiply(mvMatrix, GplaneVMat);
         }
+        
 
         // draw our primitives
 
@@ -574,7 +576,9 @@
         
         mat4.translate(mvMatrix, [GplaneTranslate[0], GplaneTranslate[1], GplaneTranslate[2]]);
         mat4.rotate(mvMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
-        mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);        
+        mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+        mat4.rotate(mvMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
+
 
         mat4.translate(mvMatrix, [0.0, 0.02, 0.05]); //put it in front of the camera
 

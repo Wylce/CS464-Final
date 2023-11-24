@@ -18,7 +18,6 @@ var Gnormal;
 
 var saveme = 0.0;
 var deltaX
-
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
 var rotate = [0, 1, 0];
@@ -239,7 +238,7 @@ GplaneTranslate[2] += Gspeed * Gdirection[2];
 
   Gdirection = getplaneDirection(Gnormal);
 
-  // console.log(Gdirection[0]);
+  // console.log(Gdirection[2]);
 
   mat4.identity(GplaneVMat);
   mat4.lookAt(
@@ -286,16 +285,12 @@ function getNormal(x, z) {
   return rn;
 }
 function getplaneDirection(tnormal) {
-    var forwardDirection = vec3.create();
-    forwardDirection[0] = 0.0;
-    forwardDirection[2] = 1.0;
-    forwardDirection[1] = 0.0;
+    planeForwardDirection[0] = 0.0;
+    planeForwardDirection[1] = 0.0;
+    planeForwardDirection[2] = 1.0;
   
     var newRotationMatrix = mat4.create();
     mat4.identity(newRotationMatrix);
-  
-    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
-    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
 
     if (deltaX == prevDeltaX) {
       deltaXRepeatCount++;
@@ -310,11 +305,15 @@ function getplaneDirection(tnormal) {
     }
 
     cameraRotationZ = -banking;
-    mat4.rotate(mvMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
+    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
+    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+    console.log('cameraRotationZ:', cameraRotationZ);
+    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationZ), [0, 0, 1]);
+
 
     prevDeltaX = deltaX;
   
-    forwardDirection = mat4.multiplyVec3(newRotationMatrix, forwardDirection);
+    planeForwardDirection = mat4.multiplyVec3(newRotationMatrix, planeForwardDirection);
   
-    return forwardDirection;
+    return planeForwardDirection;
   }
