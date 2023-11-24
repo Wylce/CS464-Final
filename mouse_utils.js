@@ -17,6 +17,7 @@ var Gnormal;
 
 var saveme = 0.0;
 var deltaX
+var displayExplosion;
 
 var GinitialTranslate = [0.0, 0.5, 0.0];
 var planeForwardDirection = [0, 0, 1];
@@ -30,15 +31,27 @@ document.addEventListener("keydown", handleKeyDown, false);
 document.addEventListener("keyup", handleKeyUp, false);
 var keys = {};
 
+var timerCurrent = 0;
+var timerMax = 30;
 function checkCollision() {
-    var terrainHeight = getTerHeight(GplaneTranslate[0], GplaneTranslate[2]);
+  var terrainHeight = getTerHeight(GplaneTranslate[0], GplaneTranslate[2]);
+  if (displayExplosion == true) {
+    if (timerCurrent >= timerMax) {
+      displayExplosion = false;
+      timerCurrent = 0;
 
-  if (GplaneTranslate[1] <= terrainHeight) {
-    GplaneTranslate[0] = GinitialTranslate[0];
-    GplaneTranslate[1] = GinitialTranslate[1];
-    GplaneTranslate[2] = GinitialTranslate[2];
+      GplaneTranslate[0] = GinitialTranslate[0];
+      GplaneTranslate[1] = GinitialTranslate[1];
+      GplaneTranslate[2] = GinitialTranslate[2];
 
-    Gspeed = 0.005;
+      Gspeed = 0.005;
+    }
+    else {
+      timerCurrent += 1;
+    }
+  }
+  if (GplaneTranslate[1] <= terrainHeight && displayExplosion == false) {
+    displayExplosion = true;
   }
 }
 
@@ -214,10 +227,11 @@ function genViewMatrix() {
     if (mouseDown && Gspeed < 0.005) {
         GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
     }
-    
-GplaneTranslate[0] += Gspeed * Gdirection[0];
-GplaneTranslate[1] += Gspeed * Gdirection[1];
-GplaneTranslate[2] += Gspeed * Gdirection[2];
+    if (displayExplosion == false) {
+      GplaneTranslate[0] += Gspeed * Gdirection[0];
+      GplaneTranslate[1] += Gspeed * Gdirection[1];
+      GplaneTranslate[2] += Gspeed * Gdirection[2];
+    }
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
@@ -237,16 +251,16 @@ GplaneTranslate[2] += Gspeed * Gdirection[2];
   // console.log(Gdirection[0]);
 
   mat4.identity(GplaneVMat);
-  mat4.lookAt(
-    GplaneTranslate,
-    [
-      GplaneTranslate[0] + Gdirection[0],
-      GplaneTranslate[1] + Gdirection[1],
-      GplaneTranslate[2] + Gdirection[2],
-    ],
-    rotate,
-    GplaneVMat
-  );
+    mat4.lookAt(
+      GplaneTranslate,
+      [
+        GplaneTranslate[0] + Gdirection[0],
+        GplaneTranslate[1] + Gdirection[1],
+        GplaneTranslate[2] + Gdirection[2],
+      ],
+      rotate,
+      GplaneVMat
+    );
   checkCollision();
 }
 

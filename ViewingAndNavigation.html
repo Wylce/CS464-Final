@@ -383,9 +383,11 @@
 
       var exTexture;
       var displayTexture;
+      var explosionTexture;
       function initTextures(){
         exTexture = initTexture("box.png", true);
         displayTexture = initTexture("plane.png", false);
+        explosionTexture = initTexture("explosion.png", false);
       }
 
       function initTexture(imageFileName, terrain){
@@ -572,6 +574,7 @@
       var banking = 0;          //amount to bank
       var deltaXRepeatCount = 0;//how many repeat DeltaX's there have been (not moved mouse)
       var resetThreshold = 5;   //how many repeat DeltaX's there need to be before reset to 0
+      var displayExplosion = false;
 
       function drawDisplay(){
         shaderProgram = entityShader;
@@ -626,7 +629,12 @@
         );
 
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+        if (displayExplosion == false) {
+          gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+        }
+        else {
+          gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
+        }
         gl.uniform1i(shaderProgram.samplerUniform, 0);
         gl.uniform1i(shaderProgram.samplerUniform, 0);
 
