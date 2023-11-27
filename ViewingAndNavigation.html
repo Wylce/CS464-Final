@@ -580,7 +580,7 @@
           }
         } else if (banking >= -90 && banking <= 90) {
           deltaXRepeatCount = 0;
-          banking = banking + 0.1 * (deltaX * 10 - banking);
+          banking = banking + 0.1 * (deltaX * 20 - banking);
         }
 
         mat4.rotate(mvMatrix, -degToRad(-banking), [0, 0, 1]);
