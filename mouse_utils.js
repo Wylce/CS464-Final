@@ -166,6 +166,8 @@ function handleMouseUp(event) {
 
 var numCalls = 0;
 var lastX = 0;
+var mouseSensitivity = 0.8;
+
 function handleMouseMove(event) {
   if (!mouseDown) {
     return;
@@ -176,11 +178,10 @@ function handleMouseMove(event) {
   }
 
   var newX = event.clientX;
-
   var newY = event.clientY;
 
-  deltaX = newX - lastMouseX;
-  var deltaY = newY - lastMouseY;
+  deltaX = (newX - lastMouseX) * mouseSensitivity;
+  var deltaY = (newY - lastMouseY) * mouseSensitivity;
 
 
   if (debugMode){
