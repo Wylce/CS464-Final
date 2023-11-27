@@ -16,7 +16,8 @@ var GplaneVMat;
 var Gnormal;
 
 var saveme = 0.0;
-var deltaX
+var deltaX;
+var deltaY;
 var displayExplosion;
 
 var GinitialTranslate = [0.0, 0.5, 0.0];
@@ -181,7 +182,10 @@ function handleMouseMove(event) {
   var newY = event.clientY;
 
   deltaX = (newX - lastMouseX) * mouseSensitivity;
-  var deltaY = (newY - lastMouseY) * mouseSensitivity;
+  deltaY = (newY - lastMouseY) * mouseSensitivity;
+
+  console.log('Y: ', deltaY);
+  console.log('X: ', deltaX);
 
 
   if (debugMode){

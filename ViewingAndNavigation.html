@@ -400,6 +400,14 @@
       function initTextures(){
         exTexture = initTexture("box.png", true);
         displayTexture = initTexture("plane.png", false);
+        displayTextureUp = initTexture("planeUp.png", false);
+        displayTextureDown = initTexture("planeDown.png", false);
+        displayTextureLeft = initTexture("planeLeft.png", false);
+        displayTextureRight = initTexture("planeRight.png", false);
+        displayTextureLeftUp = initTexture("planeLeftUp.png", false);
+        displayTextureLeftDown = initTexture("planeLeftDown.png", false);
+        displayTextureRightUp = initTexture("planeRightUp.png", false);
+        displayTextureRightDown = initTexture("planeRightDown.png", false);
         explosionTexture = initTexture("explosion.png", false);
       }
 
@@ -469,6 +477,7 @@
         cameraRotationY = 0.0;
         cameraRotationX = 0.0;
         deltaX = 0.0;
+        deltaY = 0.0;
 
 
         GplaneTranslate = [0.0, 0.5, 0.0];
@@ -561,6 +570,10 @@
       var deltaXRepeatCount = 0;//how many repeat DeltaX's there have been (not moved mouse)
       var resetThreshold = 5;   //how many repeat DeltaX's there need to be before reset to 0
       var displayExplosion = false;
+      var XpositiveEnable = 0;
+      var XnegativeEnable = 0;
+      var YpositiveEnable = 0;
+      var YnegativeEnable = 0;
 
       function drawDisplay(){
         shaderProgram = entityShader;
@@ -592,6 +605,30 @@
         
         prevDeltaX = deltaX;
 
+        // starts countdown for each texture to enable
+        if (displayExplosion == false) {
+          if (deltaX > 1.0 && deltaY > 1.0){
+            XpositiveEnable = 20;
+            YpositiveEnable = 20;
+          }
+          else if (deltaX < -1.0 && deltaY < -1.0){
+            XnegativeEnable = 20;
+            YnegativeEnable = 20;
+          }
+          else if (deltaX > 1.0){
+            XpositiveEnable = 20;
+          }
+          else if (deltaY > 1.0){
+            YpositiveEnable = 20;
+          }
+          else if (deltaX < -1.0){
+            XnegativeEnable = 20;
+          }
+          else if (deltaY < -1.0){
+            YnegativeEnable = 20;
+          }
+        }
+
         // draw our primitives
 
         gl.bindBuffer(gl.ARRAY_BUFFER, terRectVertexBuffer);
@@ -614,9 +651,36 @@
           0
         );
 
+        // Display each texture depending on if its moving right, left, up, down, or exploding
         gl.activeTexture(gl.TEXTURE0);
         if (displayExplosion == false) {
           gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+          if (XpositiveEnable > 1 && YpositiveEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUp);
+            XpositiveEnable--;
+            YpositiveEnable--;
+          }
+          else if (XnegativeEnable > 1 && YnegativeEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDown);
+            XnegativeEnable--;
+            YnegativeEnable--;
+          }
+          else if (XpositiveEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureRight);
+            XpositiveEnable--;
+          }
+          else if (YpositiveEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureUp);
+            YpositiveEnable--;
+          }
+          else if (XnegativeEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureLeft);
+            XnegativeEnable--;
+          }
+          else if (YnegativeEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureDown);
+            YnegativeEnable--;
+          }
         }
         else {
           gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
