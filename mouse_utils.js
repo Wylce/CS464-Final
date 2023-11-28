@@ -44,6 +44,9 @@ function checkCollision() {
       GplaneTranslate[0] = GinitialTranslate[0];
       GplaneTranslate[1] = GinitialTranslate[1];
       GplaneTranslate[2] = GinitialTranslate[2];
+      cameraRotationX = 0;
+      cameraRotationZ = 0;
+      cameraRotationY = 0;
 
       Gspeed = 0.005;
     }
