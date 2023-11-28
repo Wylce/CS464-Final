@@ -237,7 +237,7 @@ function zoom(factor) {
   mat4.multiply(newZoomMatrix, objRotTransMat, objRotTransMat);
 }
 
-var stallStrength = 2000;
+var stallStrength = 3000;
 
 function genViewMatrix() {
   if (isAccelerating && Gspeed < 0.005) {
@@ -251,8 +251,15 @@ function genViewMatrix() {
     Gspeed -= deceleration * 2;
   }
 
+  if (Gspeed < 0.005) {
+    var decreaseAmount = (1 / Gspeed / 500);
+    // console.log(decreaseAmount);
+    cameraRotationX = Math.max(cameraRotationX - decreaseAmount, -90);
+  }
+  
+
   if (mouseDown && Gspeed < 0.005) {
-      GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
+    GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
   }
   if (displayExplosion == false) {
     GplaneTranslate[0] += Gspeed * Gdirection[0];
