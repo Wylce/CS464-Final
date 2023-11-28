@@ -16,7 +16,8 @@ var GplaneVMat;
 var Gnormal;
 
 var saveme = 0.0;
-var deltaX
+var deltaX;
+var deltaY;
 var displayExplosion;
 
 var GinitialTranslate = [0.0, 0.5, 0.0];
@@ -181,7 +182,10 @@ function handleMouseMove(event) {
   var newY = event.clientY;
 
   deltaX = (newX - lastMouseX) * mouseSensitivity;
-  var deltaY = (newY - lastMouseY) * mouseSensitivity;
+  deltaY = (newY - lastMouseY) * mouseSensitivity;
+
+  console.log('Y: ', deltaY);
+  console.log('X: ', deltaX);
 
 
   if (debugMode){
@@ -233,7 +237,7 @@ function zoom(factor) {
   mat4.multiply(newZoomMatrix, objRotTransMat, objRotTransMat);
 }
 
-var stallStrength = 2000;
+var stallStrength = 3000;
 
 function genViewMatrix() {
   if (isAccelerating && Gspeed < 0.005) {
@@ -247,8 +251,15 @@ function genViewMatrix() {
     Gspeed -= deceleration * 2;
   }
 
+  if (Gspeed < 0.005) {
+    var decreaseAmount = (1 / Gspeed / 500);
+    // console.log(decreaseAmount);
+    cameraRotationX = Math.max(cameraRotationX - decreaseAmount, -90);
+  }
+  
+
   if (mouseDown && Gspeed < 0.005) {
-      GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
+    GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
   }
   if (displayExplosion == false) {
     GplaneTranslate[0] += Gspeed * Gdirection[0];
