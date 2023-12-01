@@ -46,6 +46,7 @@ function checkCollision() {
       GplaneTranslate[2] = GinitialTranslate[2];
       cameraRotationX = 0;
       cameraRotationY = 0;
+      cameraRotationZ = 0;
 
       Gspeed = 0.005;
     }
@@ -59,7 +60,7 @@ function checkCollision() {
 }
 
 var acceleration = 0.00005;
-var deceleration = 0.00001;
+var deceleration = 0.00003;
 var isAccelerating = false;
 var isBraking = false;
 
@@ -186,8 +187,8 @@ function handleMouseMove(event) {
   deltaX = (newX - lastMouseX) * mouseSensitivity;
   deltaY = (newY - lastMouseY) * mouseSensitivity;
 
-  console.log('Y: ', deltaY);
-  console.log('X: ', deltaX);
+  // console.log('Y: ', deltaY);
+  // console.log('X: ', deltaX);
 
 
   if (debugMode){
@@ -240,29 +241,42 @@ function zoom(factor) {
 }
 
 var stallStrength = 3000;
+var stallAmount = 0;
 
 function genViewMatrix() {
-  if (isAccelerating && Gspeed < 0.005) {
+  // checks if accelerating and increases speed
+  if (isAccelerating && Gspeed < 0.01) {
     Gspeed += acceleration;
   } 
+  // checks if decelerating and decreases speed
   else if (!isAccelerating && Gspeed > 0) {
     Gspeed -= deceleration;
   }
 
+  // checks if braking and decreases speed faster
   if (isBraking && Gspeed > 0) {
     Gspeed -= deceleration * 2;
   }
 
-  if (Gspeed < 0.005) {
+  // limits to speed to only go as slow as 0.0005
+  Gspeed = Math.max(Gspeed, 0.0005);
+
+  // checks if the speed is low enough to stall and if the user isnt accelerating
+  if (Gspeed < 0.005 && isAccelerating == false) {
     var decreaseAmount = (1 / Gspeed / 500);
     // console.log(decreaseAmount);
+    // rotates the camera to make it seem as if the plane is stalling
     cameraRotationX = Math.max(cameraRotationX - decreaseAmount, -90);
+    // console.log(cameraRotationX);
   }
   
-
+  // if stalling make the plane fall out of sky
   if (mouseDown && Gspeed < 0.005) {
-    GplaneTranslate[1] -= Math.exp(stallStrength * -Gspeed);
+    stallAmount = Math.min(Math.exp(stallStrength * -Gspeed), 0.005);
+    // console.log(stallAmount);
+    GplaneTranslate[1] -= stallAmount;
   }
+
   if (displayExplosion == false) {
     GplaneTranslate[0] += Gspeed * Gdirection[0];
     GplaneTranslate[1] += Gspeed * Gdirection[1];
