@@ -35,7 +35,7 @@ var keys = {};
 var timerCurrent = 0;
 var timerMax = 30;
 function checkCollision() {
-  var terrainHeight = getTerHeight(GplaneTranslate[0], GplaneTranslate[2]);
+  //var terrainHeight = getTerHeight(GplaneTranslate[0], GplaneTranslate[2]);
   if (displayExplosion == true) {
     if (timerCurrent >= timerMax) {
       displayExplosion = false;
@@ -54,7 +54,7 @@ function checkCollision() {
       timerCurrent += 1;
     }
   }
-  if (GplaneTranslate[1] <= terrainHeight && displayExplosion == false) {
+  if ((GplaneTranslate[1] <= -1.0 || liveChunk.checkIntersection(GplaneTranslate)) && displayExplosion == false) {
     displayExplosion = true;
   }
 }

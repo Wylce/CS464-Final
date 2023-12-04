@@ -6,9 +6,9 @@
     <meta name="generator" content="BBEdit 10.5" />
 
     <!-- load javascript helper code here -->
-    <script type="text/javascript" src="terrain-generator.js"></script>
     <script type="text/javascript" src="glMatrix_util.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
+    <script type="text/javascript" src="terrain-generator.js"></script>
     <script type="text/javascript" src="mouse_utils.js"></script>
 
     <!-- define our shaders -->
@@ -51,7 +51,9 @@
           clrVec = texture2D(uSampler,vTextureCoord);
           nclrVec = normalize(clrVec);
           nVertexPosition[1] = sqrt(nclrVec[0]*nclrVec[0] + nclrVec[1]*nclrVec[1]+nclrVec[2]*nclrVec[2])*2.5 * 2.0/10.0;
-          gl_Position = uPMatrix * uMVMatrix * vec4(nVertexPosition, 1.0);
+          
+          
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 
           vertexLightColor = ambientColor;
       }
@@ -258,7 +260,7 @@
         for (i = 0; i < 100; i++) {
           for (j = 0; j < 100; j++) {
             vertices[0 + j * 3 + i * 100 * 3] = (j * 1.0) / 50.0 - 1.0; // handle X index
-            vertices[1 + j * 3 + i * 100 * 3] = 0.0;
+            vertices[1 + j * 3 + i * 100 * 3] = -1.0;
             vertices[2 + j * 3 + i * 100 * 3] = (i * 1.0) / 50.0 - 1.0;
 
             nvertices[0 + j * 3 + i * 100 * 3] = 0.0;
@@ -266,6 +268,7 @@
             nvertices[2 + j * 3 + i * 100 * 3] = 0.0;
           }
         }
+        //generateBuildings(vertices, 0, 100, 0, 100);
         gl.bufferData(
           gl.ARRAY_BUFFER,
           new Float32Array(vertices),
@@ -437,6 +440,7 @@
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+        //REMOVE THIS LATER leaving it for now on the off chance we use it for something
         if(!terrain){
           return;
         }
@@ -462,8 +466,12 @@
         gl.deleteFramebuffer(framebuffer);
       }
 
+      var liveChunk;
+
       //Initialize everything for starting up a simple webGL application
       function startHelloWebGL() {
+        
+
         // first initialize webgl components
         var gl = initGLScene();
 
@@ -490,11 +498,13 @@
         );
         Gnormal = [0.0, 1.0, 0.0];
 
+        
         // now build basic geometry objects.
         initShaders();
         initGeometry();
         initPlaneGeometry();
         initTextures();
+        liveChunk = initChunk();
 
         // set mouse handlers for controlling rotation
         var acanvas = document.getElementById("hellowebgl");
