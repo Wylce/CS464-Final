@@ -61,7 +61,7 @@ function checkCollision() {
 
 var acceleration = 0.00005;
 var deceleration = 0.00003;
-var isAccelerating = false;
+var isAccelerating;
 var isBraking = false;
 
 
