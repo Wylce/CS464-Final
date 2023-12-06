@@ -60,10 +60,16 @@ function checkCollision() {
 }
 
 var acceleration = 0.00005;
+var boosting = 0.00009;
 var deceleration = 0.00003;
-var isAccelerating = false;
+var isAccelerating;
 var isBraking = false;
-
+var isBoosting;
+var boostDuration = 500;
+var boostTimer = 0;
+var boostDelayTimer = 0;
+var boostDelayDuration = 2000;
+var isBoostDelayed = false;
 
 function handleKeyDown(event) {
   keys[event.key] = true;
@@ -74,6 +80,14 @@ function handleKeyDown(event) {
   else if (keys["s"]) {
     isBraking = true;
   }
+  
+  if (keys["Shift"]) {
+    if (!isBoosting && !isBoostDelayed) {
+      isBoosting = true;
+      boostTimer = 0;
+    }
+  }
+
   if (debugMode){
     if (keys["+"] || keys["="]) {
       zoom(1.5);
@@ -244,13 +258,36 @@ var stallStrength = 3000;
 var stallAmount = 0;
 
 function genViewMatrix() {
+  console.log(isBoosting);
   // checks if accelerating and increases speed
   if (isAccelerating && Gspeed < 0.01) {
     Gspeed += acceleration;
   } 
   // checks if decelerating and decreases speed
-  else if (!isAccelerating && Gspeed > 0) {
+  else if (!isAccelerating && !isBoosting && Gspeed > 0) {
     Gspeed -= deceleration;
+  }
+  else if (!isBoosting && Gspeed > 0.01) {
+    Gspeed -= deceleration * 2;
+  }
+
+  if (isBoosting) {
+    if (Gspeed <= 0.04) {
+      Gspeed += boosting;
+    }
+    boostTimer += 1;
+    if (boostTimer >= boostDuration) {
+      isBoosting = false;
+    }
+    isBoostDelayed = true;
+  }
+
+  if (isBoostDelayed) {
+    boostDelayTimer += 1;
+    if (boostDelayTimer >= boostDelayDuration) {
+      boostDelayTimer = 0;
+      isBoostDelayed = false;
+    }
   }
 
   // checks if braking and decreases speed faster
@@ -277,6 +314,7 @@ function genViewMatrix() {
     GplaneTranslate[1] -= stallAmount;
   }
 
+  // console.log(Gspeed);
   if (displayExplosion == false) {
     GplaneTranslate[0] += Gspeed * Gdirection[0];
     GplaneTranslate[1] += Gspeed * Gdirection[1];

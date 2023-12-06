@@ -411,6 +411,24 @@
         displayTextureLeftDown = initTexture("planeLeftDown.png", false);
         displayTextureRightUp = initTexture("planeRightUp.png", false);
         displayTextureRightDown = initTexture("planeRightDown.png", false);
+        displayTextureEngine = initTexture("planeEngine.png", false);
+        displayTextureUpEngine = initTexture("planeUpEngine.png", false);
+        displayTextureDownEngine = initTexture("planeDownEngine.png", false);
+        displayTextureLeftEngine = initTexture("planeLeftEngine.png", false);
+        displayTextureRightEngine = initTexture("planeRightEngine.png", false);
+        displayTextureLeftUpEngine = initTexture("planeLeftUpEngine.png", false);
+        displayTextureLeftDownEngine = initTexture("planeLeftDownEngine.png", false);
+        displayTextureRightUpEngine = initTexture("planeRightUpEngine.png", false);
+        displayTextureRightDownEngine = initTexture("planeRightDownEngine.png", false);
+        displayTextureEngineBoosting = initTexture("planeEngineBoosting.png", false);
+        displayTextureUpEngineBoosting = initTexture("planeUpEngineBoosting.png", false);
+        displayTextureDownEngineBoosting = initTexture("planeDownEngineBoosting.png", false);
+        displayTextureLeftEngineBoosting = initTexture("planeLeftEngineBoosting.png", false);
+        displayTextureRightEngineBoosting = initTexture("planeRightEngineBoosting.png", false);
+        displayTextureLeftUpEngineBoosting = initTexture("planeLeftUpEngineBoosting.png", false);
+        displayTextureLeftDownEngineBoosting = initTexture("planeLeftDownEngineBoosting.png", false);
+        displayTextureRightUpEngineBoosting = initTexture("planeRightUpEngineBoosting.png", false);
+        displayTextureRightDownEngineBoosting = initTexture("planeRightDownEngineBoosting.png", false);
         explosionTexture = initTexture("explosion.png", false);
       }
 
@@ -420,7 +438,7 @@
         texture.image.onload = function() {
           handleLoadedTexture(texture, terrain)
         }
-        texture.image.src = imageFileName;
+        texture.image.src = "textures/" + imageFileName;
         return texture;
 }
 
@@ -584,6 +602,8 @@
       var XnegativeEnable = 0;
       var YpositiveEnable = 0;
       var YnegativeEnable = 0;
+      var isAccelerating = false;
+      var isBoosting = false;
 
       function drawDisplay(){
         shaderProgram = entityShader;
@@ -665,30 +685,94 @@
         gl.activeTexture(gl.TEXTURE0);
         if (displayExplosion == false) {
           gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+          if (isAccelerating == true) {
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureEngine);
+          }
+          if (isBoosting == true) {
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineBoosting);
+          }
           if (XpositiveEnable > 1 && YpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUp);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngineBoosting);
+            }
             XpositiveEnable--;
+            YpositiveEnable--;
+          }
+          else if (XnegativeEnable > 1 && YpositiveEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUp);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngineBoosting);
+            }
+            XnegativeEnable--;
             YpositiveEnable--;
           }
           else if (XnegativeEnable > 1 && YnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDown);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngineBoosting);
+            }
             XnegativeEnable--;
+            YnegativeEnable--;
+          }
+          else if (XpositiveEnable > 1 && YnegativeEnable > 1){
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDown);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngineBoosting);
+            }
+            XpositiveEnable--;
             YnegativeEnable--;
           }
           else if (XpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureRight);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngineBoosting);
+            }
             XpositiveEnable--;
           }
           else if (YpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureUp);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngineBoosting);
+            }
             YpositiveEnable--;
           }
           else if (XnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureLeft);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngineBoosting);
+            }
             XnegativeEnable--;
           }
           else if (YnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureDown);
+            if (isAccelerating == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngine);
+            }
+            if (isBoosting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngineBoosting);
+            }
             YnegativeEnable--;
           }
         }
