@@ -105,15 +105,14 @@ console.log(isShooting);
 function handleKeyUp(event) {
   keys[event.key] = false;
 
+  if (event.key == "f") {
+    isShooting = false;
+  }
   if (event.key == "w") {
     isAccelerating = false;
   }
   else if (event.key == "s") {
     isBraking = false;
-  }
-
-  if (event.key == "f") {
-    isShooting = false;
   }
 }
 

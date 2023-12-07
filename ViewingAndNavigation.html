@@ -729,16 +729,11 @@
           gl.bindTexture(gl.TEXTURE_2D, displayTexture);
           if (isShooting == true) {
             gl.bindTexture(gl.TEXTURE_2D, displayTextureShooting);
-            playGunshotSound();
           }
           if (isAccelerating == true) {
             gl.bindTexture(gl.TEXTURE_2D, displayTextureEngine);
             if (isShooting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineShooting);
-            }
-            else if (gunshotAudio) {
-              gunshotAudio.pause();
-              gunshotAudio.currentTime = 0;
             }
           }
           if (isBoosting == true) {
@@ -906,6 +901,14 @@
         }
         else {
           gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
+        }
+
+        if (isShooting) {
+          playGunshotSound();
+        }
+        else if (gunshotAudio) {
+            gunshotAudio.pause();
+            gunshotAudio.currentTime = 0;
         }
         gl.uniform1i(shaderProgram.samplerUniform, 0);
         gl.uniform1i(shaderProgram.samplerUniform, 0);
