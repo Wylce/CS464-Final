@@ -65,6 +65,7 @@ var deceleration = 0.00003;
 var isAccelerating;
 var isBraking = false;
 var isBoosting;
+var isShooting;
 var boostDuration = 500;
 var boostTimer = 0;
 var boostDelayTimer = 0;
@@ -88,6 +89,10 @@ function handleKeyDown(event) {
     }
   }
 
+  if (keys["f"]) {
+    isShooting = true;
+  }
+console.log(isShooting);
   if (debugMode){
     if (keys["+"] || keys["="]) {
       zoom(1.5);
@@ -105,6 +110,10 @@ function handleKeyUp(event) {
   }
   else if (event.key == "s") {
     isBraking = false;
+  }
+
+  if (event.key == "f") {
+    isShooting = false;
   }
 }
 
@@ -258,7 +267,7 @@ var stallStrength = 3000;
 var stallAmount = 0;
 
 function genViewMatrix() {
-  console.log(isBoosting);
+  // console.log(isBoosting);
   // checks if accelerating and increases speed
   if (isAccelerating && Gspeed < 0.01) {
     Gspeed += acceleration;

@@ -5,6 +5,8 @@
     <title>Simple Terrain with plane</title>
     <meta name="generator" content="BBEdit 10.5" />
 
+    <audio id="gunshotAudio" src="gunshot.mp3"></audio>
+
     <!-- load javascript helper code here -->
     <script type="text/javascript" src="glMatrix_util.js"></script>
     <script type="text/javascript" src="webgl-utils.js"></script>
@@ -252,7 +254,7 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, terVertexPositionBuffer);
 
         vertexDistance =  ((1 * 1.0) / 50.0 - 1.0) - ((2 * 1.0) / 50.0 - 1.0);
-        console.log(vertexDistance);
+        // console.log(vertexDistance);
 
         vertices = [];
         nvertices = [];
@@ -429,6 +431,33 @@
         displayTextureLeftDownEngineBoosting = initTexture("planeLeftDownEngineBoosting.png", false);
         displayTextureRightUpEngineBoosting = initTexture("planeRightUpEngineBoosting.png", false);
         displayTextureRightDownEngineBoosting = initTexture("planeRightDownEngineBoosting.png", false);
+        displayTextureShooting = initTexture("planeShooting.png", false);
+        displayTextureUpShooting = initTexture("planeUpShooting.png", false);
+        displayTextureDownShooting = initTexture("planeDownShooting.png", false);
+        displayTextureLeftShooting = initTexture("planeLeftShooting.png", false);
+        displayTextureRightShooting = initTexture("planeRightShooting.png", false);
+        displayTextureLeftUpShooting = initTexture("planeLeftUpShooting.png", false);
+        displayTextureLeftDownShooting = initTexture("planeLeftDownShooting.png", false);
+        displayTextureRightUpShooting = initTexture("planeRightUpShooting.png", false);
+        displayTextureRightDownShooting = initTexture("planeRightDownShooting.png", false);
+        displayTextureEngineShooting = initTexture("planeEngineShooting.png", false);
+        displayTextureUpEngineShooting = initTexture("planeUpEngineShooting.png", false);
+        displayTextureDownEngineShooting = initTexture("planeDownEngineShooting.png", false);
+        displayTextureLeftEngineShooting = initTexture("planeLeftEngineShooting.png", false);
+        displayTextureRightEngineShooting = initTexture("planeRightEngineShooting.png", false);
+        displayTextureLeftUpEngineShooting = initTexture("planeLeftUpEngineShooting.png", false);
+        displayTextureLeftDownEngineShooting = initTexture("planeLeftDownEngineShooting.png", false);
+        displayTextureRightUpEngineShooting = initTexture("planeRightUpEngineShooting.png", false);
+        displayTextureRightDownEngineShooting = initTexture("planeRightDownEngineShooting.png", false);
+        displayTextureEngineBoostingShooting = initTexture("planeEngineBoostingShooting.png", false);
+        displayTextureUpEngineBoostingShooting = initTexture("planeUpEngineBoostingShooting.png", false);
+        displayTextureDownEngineBoostingShooting = initTexture("planeDownEngineBoostingShooting.png", false);
+        displayTextureLeftEngineBoostingShooting = initTexture("planeLeftEngineBoostingShooting.png", false);
+        displayTextureRightEngineBoostingShooting = initTexture("planeRightEngineBoostingShooting.png", false);
+        displayTextureLeftUpEngineBoostingShooting = initTexture("planeLeftUpEngineBoostingShooting.png", false);
+        displayTextureLeftDownEngineBoostingShooting = initTexture("planeLeftDownEngineBoostingShooting.png", false);
+        displayTextureRightUpEngineBoostingShooting = initTexture("planeRightUpEngineBoostingShooting.png", false);
+        displayTextureRightDownEngineBoostingShooting = initTexture("planeRightDownEngineBoostingShooting.png", false);
         explosionTexture = initTexture("explosion.png", false);
       }
 
@@ -604,6 +633,13 @@
       var YnegativeEnable = 0;
       var isAccelerating = false;
       var isBoosting = false;
+      var isShooting = false;
+
+      var gunshotAudio = document.getElementById("gunshotAudio");
+
+      function playGunshotSound() {
+        gunshotAudio.play();
+      }
 
       function drawDisplay(){
         shaderProgram = entityShader;
@@ -681,97 +717,189 @@
           0
         );
 
+        var volumeSlider = document.getElementById("volumeSlider");
+        gunshotAudio.volume = volumeSlider.value;
+        volumeSlider.addEventListener("input", function () {
+          gunshotAudio.volume = volumeSlider.value;
+        });
+
         // Display each texture depending on if its moving right, left, up, down, or exploding
         gl.activeTexture(gl.TEXTURE0);
         if (displayExplosion == false) {
           gl.bindTexture(gl.TEXTURE_2D, displayTexture);
+          if (isShooting == true) {
+            gl.bindTexture(gl.TEXTURE_2D, displayTextureShooting);
+            playGunshotSound();
+          }
           if (isAccelerating == true) {
             gl.bindTexture(gl.TEXTURE_2D, displayTextureEngine);
+            if (isShooting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineShooting);
+            }
+            else if (gunshotAudio) {
+              gunshotAudio.pause();
+              gunshotAudio.currentTime = 0;
+            }
           }
           if (isBoosting == true) {
             gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineBoosting);
+            if (isShooting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineBoostingShooting);
+            }
           }
           if (XpositiveEnable > 1 && YpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUp);
+            if (isShooting == true) {
+              gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightUpEngineBoostingShooting);
+              }
             }
             XpositiveEnable--;
             YpositiveEnable--;
           }
           else if (XnegativeEnable > 1 && YpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUp);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftUpEngineBoostingShooting);
+              }
             }
             XnegativeEnable--;
             YpositiveEnable--;
           }
           else if (XnegativeEnable > 1 && YnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDown);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftDownEngineBoostingShooting);
+              }
             }
             XnegativeEnable--;
             YnegativeEnable--;
           }
           else if (XpositiveEnable > 1 && YnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDown);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightDownEngineBoostingShooting);
+              }
             }
             XpositiveEnable--;
             YnegativeEnable--;
           }
           else if (XpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureRight);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureRightEngineBoostingShooting);
+              }
             }
             XpositiveEnable--;
           }
           else if (YpositiveEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureUp);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureUpShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureUpEngineBoostingShooting);
+              }
             }
             YpositiveEnable--;
           }
           else if (XnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureLeft);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureLeftEngineBoostingShooting);
+              }
             }
             XnegativeEnable--;
           }
           else if (YnegativeEnable > 1){
             gl.bindTexture(gl.TEXTURE_2D, displayTextureDown);
+            if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureDownShooting);
+            }
             if (isAccelerating == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngine);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngineShooting);
+              }
             }
             if (isBoosting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngineBoosting);
+              if (isShooting == true) {
+                gl.bindTexture(gl.TEXTURE_2D, displayTextureDownEngineBoostingShooting);
+              }
             }
             YnegativeEnable--;
           }
@@ -830,6 +958,7 @@
     <p>
       <label for="debug-enable"><b>Debug Mode</b>:</label>
       <input type="checkbox" id="debug-enable" name="debug" value="debug">
+      <input type="range" min="0" max="1" step="0.1" value="1" id="volumeSlider">
     </p>
   </body>
 </html>
