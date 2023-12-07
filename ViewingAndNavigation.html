@@ -6,6 +6,10 @@
     <meta name="generator" content="BBEdit 10.5" />
 
     <audio id="gunshotAudio" src="gunshot.mp3"></audio>
+    <audio id="planeAudio" src="plane.mp3"></audio>
+    <audio id="boostAudio" src="boost.mp3"></audio>
+
+
 
     <!-- load javascript helper code here -->
     <script type="text/javascript" src="glMatrix_util.js"></script>
@@ -636,9 +640,20 @@
       var isShooting = false;
 
       var gunshotAudio = document.getElementById("gunshotAudio");
+      var planeAudio = document.getElementById("planeAudio");
+      var boostAudio = document.getElementById("boostAudio");
+
 
       function playGunshotSound() {
         gunshotAudio.play();
+      }
+
+      function playPlaneSound() {
+        planeAudio.play();
+      }
+
+      function playBoostSound() {
+        boostAudio.play();
       }
 
       function drawDisplay(){
@@ -719,8 +734,13 @@
 
         var volumeSlider = document.getElementById("volumeSlider");
         gunshotAudio.volume = volumeSlider.value;
+        planeAudio.volume = volumeSlider.value;
+        boostAudio.volume = volumeSlider.value;
+
         volumeSlider.addEventListener("input", function () {
           gunshotAudio.volume = volumeSlider.value;
+          planeAudio.volume = volumeSlider.value;
+          boostAudio.volume = volumeSlider.value;
         });
 
         // Display each texture depending on if its moving right, left, up, down, or exploding
@@ -907,9 +927,26 @@
           playGunshotSound();
         }
         else if (gunshotAudio) {
-            gunshotAudio.pause();
-            gunshotAudio.currentTime = 0;
+          gunshotAudio.pause();
+          gunshotAudio.currentTime = 0;
         }
+
+        if (isAccelerating || isBoosting) {
+          playPlaneSound();
+        }
+        else if (planeAudio) {
+          planeAudio.pause();
+          planeAudio.currentTime = 0;
+        }
+
+        if (isBoosting) {
+          playBoostSound();
+        }
+        else if (boostAudio) {
+          boostAudio.pause();
+          boostAudio.currentTime = 0;
+        }
+
         gl.uniform1i(shaderProgram.samplerUniform, 0);
         gl.uniform1i(shaderProgram.samplerUniform, 0);
 
