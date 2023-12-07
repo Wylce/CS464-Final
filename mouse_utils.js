@@ -316,7 +316,7 @@ function genViewMatrix() {
   }
   
   // if stalling make the plane fall out of sky
-  if (mouseDown && Gspeed < 0.005) {
+  if (Gspeed < 0.005) {
     stallAmount = Math.min(Math.exp(stallStrength * -Gspeed), 0.005);
     // console.log(stallAmount);
     GplaneTranslate[1] -= stallAmount;
