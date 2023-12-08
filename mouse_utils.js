@@ -48,6 +48,8 @@ function checkCollision() {
       cameraRotationY = 0;
       cameraRotationZ = 0;
 
+      chunkCoords = [0, 0];
+
       Gspeed = 0.005;
     }
     else {
@@ -331,15 +333,19 @@ function genViewMatrix() {
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
+    enterChunk([chunkCoords[0] - 1, chunkCoords[1]])
   }
   if (GplaneTranslate[2] >= 1.0) {
     GplaneTranslate[2] = -0.99;
+    enterChunk([chunkCoords[0], chunkCoords[1] - 1]);
   }
   if (GplaneTranslate[0] <= -1.0) {
     GplaneTranslate[0] = 0.99;
+    enterChunk([chunkCoords[0] + 1, chunkCoords[1]]);
   }
   if (GplaneTranslate[2] <= -1.0) {
     GplaneTranslate[2] = 0.99;
+    enterChunk([chunkCoords[0], chunkCoords[1] + 1]);
   }
 
   Gdirection = getplaneDirection(Gnormal);

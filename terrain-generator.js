@@ -1,22 +1,29 @@
 chunkWidth = (100.0 * 1.0) / 50.0 - 1.0;
+var chunkMap;
+var chunkCoords;
+//TODO: fill this with stuff
+var chunksToRender;
 
-
+var numChunks;
 
 //https://www.playfuljs.com/realistic-terrain-in-130-lines/
 //https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
 
 var heightMap;
-var testBuilding;
-
-var init = false;
 
 class Chunk {
-  constructor(){
+  constructor(chunkID){
     this.buildingArray = [];
+    this.coordinates;
+    this.init = false;
+    this.numBuildings = 0;
+    this.id = chunkID;
+    this.heightRating = 0;
   }
 
   addBuilding(building){
-    this.buildingArray.push(building);
+    this.buildingArray[this.numBuildings] = building;
+    this.numBuildings++;
   }
 
   checkIntersection(point){
@@ -27,18 +34,117 @@ class Chunk {
     }
     return false;
   }
+
+  generateBuildings(){
+    var testBuilding = new Building(0.0, -1.0, -0.5);
+    testBuilding.id = this.id;
+    this.heightRating = Math.max(Math.abs(this.coordinates[0]), Math.abs(this.coordinates[1]));
+    testBuilding.makeBuildingGeometry(0.2, (this.heightRating % 19) / 10 , 0.2);
+    this.addBuilding(testBuilding);
+  }
+
+  drawBuildings(){
+    for (i = 0; i < this.numBuildings; i++){
+      var building = this.buildingArray[i];
+  
+    gl.bindBuffer(gl.ARRAY_BUFFER, building.vertexPositionBuffer);
+    gl.vertexAttribPointer(
+      shaderProgram.vertexPositionAttribute,
+      building.vertexPositionBuffer.itemSize,
+      gl.FLOAT,
+      false,
+      0,
+      0
+    );
+  
+    gl.bindBuffer(gl.ARRAY_BUFFER, building.textureCoordBuffer);
+    gl.vertexAttribPointer(
+      shaderProgram.textureCoordAttribute,
+      building.textureCoordBuffer.itemSize,
+      gl.FLOAT,
+      false,
+      0,
+      0
+    );
+  
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, exTexture);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+  
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, building.vertexIndexBuffer);
+  
+    setMatrixUniforms();
+    gl.drawElements(
+      gl.TRIANGLES,
+      building.vertexIndexBuffer.numItems,
+      gl.UNSIGNED_SHORT,
+      0
+      );
+    }
+  }
+
+  drawBuilding(building){
+  
+    gl.bindBuffer(gl.ARRAY_BUFFER, building.vertexPositionBuffer);
+    gl.vertexAttribPointer(
+      shaderProgram.vertexPositionAttribute,
+      building.vertexPositionBuffer.itemSize,
+      gl.FLOAT,
+      false,
+      0,
+      0
+    );
+  
+    gl.bindBuffer(gl.ARRAY_BUFFER, building.textureCoordBuffer);
+    gl.vertexAttribPointer(
+      shaderProgram.textureCoordAttribute,
+      building.textureCoordBuffer.itemSize,
+      gl.FLOAT,
+      false,
+      0,
+      0
+    );
+  
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, exTexture);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+    gl.uniform1i(shaderProgram.samplerUniform, 0);
+  
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, building.vertexIndexBuffer);
+  
+    setMatrixUniforms();
+    gl.drawElements(
+      gl.TRIANGLES,
+      building.vertexIndexBuffer.numItems,
+      gl.UNSIGNED_SHORT,
+      0
+      );
+  }
 }
 
-function help(){
-  console.log("help");
+function hashKey(coordinates){
+  return coordinates[0] + "," + coordinates[1];
+}
+
+function enterChunk(coords){
+  chunkCoords = coords;
+  liveChunk = getChunk(coords);
+}
+
+function initTerrain(){
+  numChunks = 0;
+  chunkCoords = [0, 0];
+  chunkMap = new Map();
+  liveChunk = getChunk([0,0]);
 }
 
 function initChunk(chunkX, chunkY){
-  var chunk = new Chunk();
-  testBuilding = new Building(0.0, 0.0, -0.5);
-  testBuilding.makeBuildingGeometry(0.2, 1.0, 0.2);
-  init = true;
-  chunk.addBuilding(testBuilding);
+  numChunks++;
+  var chunk = new Chunk(numChunks);
+  chunk.coordinates = [chunkX, chunkY];
+  chunk.generateBuildings();
+  chunk.init = true;
   return chunk;
 }
 
@@ -51,7 +157,6 @@ class Building {
     this.yMax = 0.0;
     this.zMin = z;
     this.zMax = 0.0;
-    //console.log("made building");
     this.vertexPositionBuffer;
     this.textureCoordBuffer;
     this.vertexIndexBuffer;
@@ -170,21 +275,106 @@ class Building {
 
 }
 
-function drawBuilding(building){
-  gl.bindBuffer(gl.ARRAY_BUFFER, building.vertexPositionBuffer);
+
+
+function generateBuildings(){
+
+}
+
+function loadRenderSet(drawDistance){
+  chunksToRender = [];
+  //chunksToRender[0] = getChunk(chunkCoords) //add the active chunk
+  var cind = 0;
+
+  var nextCoords = [];
+  //nextCoords[0] = chunkCoords[0];
+  //nextCoords[1] = chunkCoords[1] + 1;
+  //chunksToRender[1] = getChunk(nextCoords);
+
+
+  //var orientation = Math.floor((cameraRotationY % 360) / 90);
+  var xOrientation = Math.round(Gdirection[0]);
+  var zOrientation = Math.round(Gdirection[2]);
+
+  for (i = 0; i <= drawDistance; i++){
+
+    nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
+    nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
+    chunksToRender[cind] = getChunk(nextCoords);
+    cind++;
+
+    //Trying to think of a way to optimize, maybe calculate an offset?
+    //Having trouble getting around how it switches which coordinate gets subtracted
+    var xOffset;
+    var zOffset;
+
+    if (xOrientation  == 0){
+      nextCoords[0] = chunkCoords[0] + 1;
+      //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+
+      nextCoords[0] = chunkCoords[0] - 1;
+      //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+    }
+
+    if (zOrientation  == 0){
+      //nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
+      nextCoords[1] = chunkCoords[1] + 1;
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+
+      //nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
+      nextCoords[1] = chunkCoords[1] - 1;
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+    }
+
+    if (xOrientation != 0 && zOrientation != 0){
+      nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
+      nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1)) - zOrientation;
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+
+      nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1)) - xOrientation;
+      nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
+      chunksToRender[cind] = getChunk(nextCoords);
+      cind++;
+    }
+  }
+}
+
+function getChunk(coords){
+  var chunk = chunkMap.get(hashKey(coords));
+
+  if (typeof chunk == 'undefined'){
+    chunk = initChunk(coords[0], coords[1]);
+    chunkMap.set(hashKey(coords), chunk);
+  }
+  return chunk;
+}
+
+function drawChunk(chunk){
+  var matrixOffset = [(chunkCoords[0] - chunk.coordinates[0])  * chunkOffset, 0.0, (chunkCoords[1] - chunk.coordinates[1]) * chunkOffset];
+  mvMatrix = mat4Copy(matrixStack[0]);
+  mat4.translate(mvMatrix, matrixOffset);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, terVertexPositionBuffer);
   gl.vertexAttribPointer(
     shaderProgram.vertexPositionAttribute,
-    building.vertexPositionBuffer.itemSize,
+    terVertexPositionBuffer.itemSize,
     gl.FLOAT,
     false,
     0,
     0
   );
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, building.textureCoordBuffer);
+  gl.bindBuffer(gl.ARRAY_BUFFER, terVertexTextureCoordBuffer);
   gl.vertexAttribPointer(
     shaderProgram.textureCoordAttribute,
-    building.textureCoordBuffer.itemSize,
+    terVertexTextureCoordBuffer.itemSize,
     gl.FLOAT,
     false,
     0,
@@ -196,48 +386,24 @@ function drawBuilding(building){
   gl.uniform1i(shaderProgram.samplerUniform, 0);
   gl.uniform1i(shaderProgram.samplerUniform, 0);
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, building.vertexIndexBuffer);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terVertexIndexBuffer);
 
   setMatrixUniforms();
   gl.drawElements(
     gl.TRIANGLES,
-    building.vertexIndexBuffer.numItems,
+    terVertexIndexBuffer.numItems,
     gl.UNSIGNED_SHORT,
     0
-    );
-}
+  );
 
-
-//Attemp 1, remove later, makes sloping sides
-/** 
-function generateBuildings(chunkVertices, xStart, xEnd, yStart, yEnd){
-  //console.log(xEnd + " "  + xStart);
-  console.log(xEnd - xStart);
-  if  ((xEnd - xStart < 10) || (yEnd - yStart < 10)){
-    console.log("hit");
-    for ( i = xStart + 1; i < xEnd; i++){
-      for (j = yStart + 1; j < yEnd; j++){
-        var curIndex = (1 + j * 3 + i * (xEnd - xStart) * 3);
-        console.log("index: " + curIndex);
-        chunkVertices[(curIndex)] = 0.2;
-      }
-    }
-  return;
-  }
-  console.log("Past");
-  generateBuildings(chunkVertices, xStart, Math.floor(xEnd / 2), yStart, Math.floor(yEnd / 2));
-  generateBuildings(chunkVertices, Math.floor(xStart / 2), xEnd, yStart, Math.floor(yEnd / 2));
-  //generateBuildings(chunkVertices, xStart, xEnd / 2, yStart / 2, yEnd);
-  //generateBuildings(chunkVertices, xStart / 2, xEnd, yStart / 2, yEnd);
-}*/
-
-function generateBuildings(){
-
+  chunk.drawBuildings();
 }
 
 function drawTerrain(){
 
-    chunkOffset = vertexDistance * 98.0;
+    loadRenderSet(3);
+
+    chunkOffset = vertexDistance * 98.0 * -1;
 
     var frontLeft = [chunkOffset, 0.0, chunkOffset];
     var frontMiddle = [-1.0 * chunkOffset, 0.0, 0.0];
@@ -252,49 +418,19 @@ function drawTerrain(){
                     right, left,
                     backLeft, backMiddle, backRight];
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, terVertexPositionBuffer);
-        gl.vertexAttribPointer(
-          shaderProgram.vertexPositionAttribute,
-          terVertexPositionBuffer.itemSize,
-          gl.FLOAT,
-          false,
-          0,
-          0
-        );
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, terVertexTextureCoordBuffer);
-        gl.vertexAttribPointer(
-          shaderProgram.textureCoordAttribute,
-          terVertexTextureCoordBuffer.itemSize,
-          gl.FLOAT,
-          false,
-          0,
-          0
-        );
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, exTexture);
-        gl.uniform1i(shaderProgram.samplerUniform, 0);
-        gl.uniform1i(shaderProgram.samplerUniform, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terVertexIndexBuffer);
-
-        setMatrixUniforms();
-        gl.drawElements(
-          gl.TRIANGLES,
-          terVertexIndexBuffer.numItems,
-          gl.UNSIGNED_SHORT,
-          0
-        );
+        //drawChunk();
         
         //mvMatrix = mat4Copy(matrixStack[0]);
         //tiles will need to overlap by a vertex on their edge for surface interpolation to look smooth
         //how far apart are the vertices?
         //gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
 
+        /*
         for(i = 0; i < 8; i++){
             //mvMatrix = mat4Copy(matrixStack[0]);
             mat4.translate(mvMatrix, chunkOffsets[i]);
+            drawChunk();
+            /*
             setMatrixUniforms();
             gl.drawElements(
                 gl.TRIANGLES,
@@ -302,7 +438,11 @@ function drawTerrain(){
                 gl.UNSIGNED_SHORT,
                 0
             );
+        }*/
+
+        for (const chunk of chunksToRender){
+          drawChunk(chunk);
         }
+        
         mvMatrix = mat4Copy(matrixStack[0]);
-        drawBuilding(testBuilding);
 }
