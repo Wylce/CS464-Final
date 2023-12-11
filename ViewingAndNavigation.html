@@ -407,7 +407,8 @@
       var displayTexture;
       var explosionTexture;
       function initTextures(){
-        exTexture = initTexture("box.png", true);
+        exTexture = initTexture("road.png", true);
+        exTexture2 = initTexture("building.png", true);
         displayTexture = initTexture("plane.png", false);
         displayTextureUp = initTexture("planeUp.png", false);
         displayTextureDown = initTexture("planeDown.png", false);
@@ -539,7 +540,7 @@
         deltaY = 0.0;
 
 
-        GplaneTranslate = [0.0, 0.5, 0.0];
+        GplaneTranslate = [0.0, 2, 0.0];
         GplaneTip = mat4.create();
         mat4.identity(GplaneTip);
         GplaneVMat = mat4.lookAt(
@@ -563,7 +564,7 @@
         document.onmouseup = handleMouseUp;
         document.onmousemove = handleMouseMove;
 
-        gl.clearColor(0.4, 0.4, 0.4, 1.0);
+        gl.clearColor(0.5, 0.5, 0.7, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
