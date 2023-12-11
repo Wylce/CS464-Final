@@ -1,4 +1,3 @@
-chunkWidth = (100.0 * 1.0) / 50.0 - 1.0;
 var chunkMap;
 var chunkCoords;
 //TODO: fill this with stuff
@@ -35,12 +34,44 @@ class Chunk {
     return false;
   }
 
-  generateBuildings(){
-    var testBuilding = new Building(0.0, -1.0, -0.5);
-    testBuilding.id = this.id;
-    this.heightRating = Math.max(Math.abs(this.coordinates[0]), Math.abs(this.coordinates[1]));
-    testBuilding.makeBuildingGeometry(0.2, (this.heightRating % 19) / 10 , 0.2);
-    this.addBuilding(testBuilding);
+  generateBuildings() {
+    var numBuildings = 20;
+    var minWidth = 0.2;
+    var maxWidth = 0.7;
+    var minDistance = 0.6;
+  
+    for (let i = 0; i < numBuildings; i++) {
+      var attempts = 0;
+      var validPosition = false;
+      var randomX;
+      var randomZ;
+  
+      while (!validPosition && attempts < 50) {
+        randomX = Math.random() - 1;
+        randomZ = Math.random() - 1;
+        validPosition = this.isValidBuildingPosition(randomX, randomZ, minDistance);
+        attempts++;
+      }
+  
+      if (validPosition) {
+        var testBuilding = new Building(randomX, -1.0, randomZ);
+        testBuilding.id = this.id;
+        this.heightRating = Math.max(Math.abs(randomX), Math.abs(randomZ));
+        var width = Math.random() * (maxWidth - minWidth) + minWidth;
+        testBuilding.makeBuildingGeometry(width, width);
+        this.addBuilding(testBuilding);
+      }
+    }
+  }
+
+  isValidBuildingPosition(x, z, minDistance) {
+    for (const existingBuilding of this.buildingArray) {
+      var distance = Math.sqrt((x - existingBuilding.xMin) ** 2 + (z - existingBuilding.zMin) ** 2);
+      if (distance < minDistance) {
+        return false;
+      }
+    }
+    return true;
   }
 
   drawBuildings(){
@@ -68,7 +99,7 @@ class Chunk {
     );
   
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, exTexture);
+    gl.bindTexture(gl.TEXTURE_2D, exTexture2);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
   
@@ -171,10 +202,17 @@ class Building {
     );
   }
 
-   makeBuildingGeometry(width, height, depth){
+   makeBuildingGeometry(width, depth){
     this.xMax = this.xMin + width;
-    this.yMax = this.yMin + height;
     this.zMax = this.zMin + depth;
+
+    const minHeight = 0.5;
+    const maxHeight = 3.0;
+    const minWidth = 0.2;
+    const maxWidth = 0.8;
+    const height = Math.random() * (maxHeight - minHeight) + minHeight;
+
+    this.yMax = this.yMin + height;
 
     this.vertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
@@ -224,38 +262,39 @@ class Building {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
     var textureCoords = [
       // Front face
-       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      0.0, 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
 
       // Back face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
 
       // Top face
-      0.0, 1.0,
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
 
       // Right face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
 
-       // Left face
+      // Left face
       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-    ];
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
+  ];
+  
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
     this.textureCoordBuffer.itemSize = 2;
-    this.textureCoordBuffer.numItems = 20;
+    this.textureCoordBuffer.numItems = 24;
 
     this.vertexIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
@@ -296,7 +335,7 @@ function loadRenderSet(drawDistance){
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
 
-  for (i = 0; i <= drawDistance; i++){
+  for (i = -1; i <= drawDistance; i++){
 
     nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
     nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));

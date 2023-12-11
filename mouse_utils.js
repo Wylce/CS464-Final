@@ -20,7 +20,7 @@ var deltaX;
 var deltaY;
 var displayExplosion;
 
-var GinitialTranslate = [0.0, 0.5, 0.0];
+var GinitialTranslate = [0.0, 2.0, 0.0];
 var planeForwardDirection = [0, 0, 1];
 var rotate = [0, 1, 0];
 
