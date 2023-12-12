@@ -374,11 +374,12 @@ function loadRenderSet(drawDistance){
   //var orientation = Math.floor((cameraRotationY % 360) / 90);
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
-  var yOrientation = Math.round(Gdirection[1]);
+  //var yOrientation = Math.round(Gdirection[1]);
+  var yOrientation = Gdirection[1];
 
   console.log("Y: " + yOrientation);
 
-  if(yOrientation < 0){
+  if(yOrientation < -0.8){
     for (i = drawDistance / -2; i < drawDistance / 2; i++){
       for (j = drawDistance / -2; j < drawDistance / 2; j++){
         chunksToRender[cind] = getChunk([chunkCoords[0] + i, chunkCoords[1] + j]);
@@ -474,6 +475,10 @@ function getChunk(coords){
 }
 
 function drawChunk(chunk){
+
+  shaderProgram = terrainShader;
+  gl.useProgram(shaderProgram);
+
   var matrixOffset = [(chunkCoords[0] - chunk.coordinates[0])  * chunkOffset, 0.0, (chunkCoords[1] - chunk.coordinates[1]) * chunkOffset];
   mvMatrix = mat4Copy(matrixStack[0]);
   mat4.translate(mvMatrix, matrixOffset);
@@ -482,6 +487,16 @@ function drawChunk(chunk){
   gl.vertexAttribPointer(
     shaderProgram.vertexPositionAttribute,
     terVertexPositionBuffer.itemSize,
+    gl.FLOAT,
+    false,
+    0,
+    0
+  );
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, terNormalBuffer);
+  gl.vertexAttribPointer(
+    shaderProgram.vertexNormalAttribute,
+    terNormalBuffer.itemSize,
     gl.FLOAT,
     false,
     0,
@@ -503,6 +518,8 @@ function drawChunk(chunk){
   gl.uniform1i(shaderProgram.samplerUniform, 0);
   gl.uniform1i(shaderProgram.samplerUniform, 0);
 
+  gl.uniform1i(shaderProgram.chunkDistance, Math.abs(Math.max(matrixOffset[0], matrixOffset[1])));
+
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, terVertexIndexBuffer);
 
   setMatrixUniforms();
@@ -512,6 +529,13 @@ function drawChunk(chunk){
     gl.UNSIGNED_SHORT,
     0
   );
+
+  shaderProgram = entityShader;
+  gl.useProgram(shaderProgram);
+
+  gl.uniform3fv(shaderProgram.ambientLight, [1.0, 1.1, 0.9]);
+  gl.uniform1i(shaderProgram.chunkDistance, Math.abs(Math.max(matrixOffset[0], matrixOffset[1])));
+  gl.uniform1i(shaderProgram.isPlane, 0);
 
   chunk.drawBuildings();
 }
