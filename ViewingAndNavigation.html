@@ -31,6 +31,7 @@
       uniform int uRenderDistance;
       uniform int uChunkDistance;
       uniform float uPlanePosition;
+      uniform int uEnginesOn;
       uniform vec3 uAmbientLight;
       uniform vec3 uDirectionalLightDirection;
       uniform vec3 uDirectionalLightColor;
@@ -47,11 +48,13 @@
           if (uIsPlane == 1){
             height = uPlanePosition/2.0 + 1.2;
 
-            if(vTextureCoord.x > 0.44 && vTextureCoord.x < 0.55){
-              if(vTextureCoord.y < 0.25){
-                height = vTextureCoord.y + 0.35;
-              }
-           }
+            if (uEnginesOn == 1){
+              if(vTextureCoord.x > 0.44 && vTextureCoord.x < 0.55){
+                if(vTextureCoord.y < 0.25){
+                  height = vTextureCoord.y + 0.35;
+                }
+            }
+          }
 
           } else {
             height = fVertexPosition[1] + 1.5;
@@ -73,6 +76,7 @@
       uniform int uRenderDistance;
       uniform int uChunkDistance;
       uniform float uPlanePosition;
+      uniform int uEnginesOn;
       uniform vec3 uAmbientLight;
       uniform vec3 uDirectionalLightDirection;
       uniform vec3 uDirectionalLightColor;
@@ -346,6 +350,10 @@
         shaderProgram.isPlane = gl.getUniformLocation(
           shaderProgram,
           "uIsPlane"
+        );
+        shaderProgram.enginesOn = gl.getUniformLocation(
+          shaderProgram,
+          "uEnginesOn"
         );
       }
 
@@ -802,6 +810,8 @@
         mat4.rotate(mvMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
         mat4.rotate(mvMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
 
+        gl.uniform1i(shaderProgram.enginesOn, 0);
+
         if (deltaX == prevDeltaX) {
           deltaXRepeatCount++;
           if (deltaXRepeatCount >= resetThreshold) {
@@ -888,12 +898,14 @@
             gl.bindTexture(gl.TEXTURE_2D, displayTextureShooting);
           }
           if (isAccelerating == true) {
+            gl.uniform1i(shaderProgram.enginesOn, 1);
             gl.bindTexture(gl.TEXTURE_2D, displayTextureEngine);
             if (isShooting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineShooting);
             }
           }
           if (isBoosting == true) {
+            gl.uniform1i(shaderProgram.enginesOn, 1);
             gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineBoosting);
             if (isShooting == true) {
               gl.bindTexture(gl.TEXTURE_2D, displayTextureEngineBoostingShooting);
