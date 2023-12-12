@@ -77,39 +77,69 @@ class Chunk {
     for (i = 0; i < this.numBuildings; i++){
       var building = this.buildingArray[i];
   
-    gl.bindBuffer(gl.ARRAY_BUFFER, building.vertexPositionBuffer);
-    gl.vertexAttribPointer(
-      shaderProgram.vertexPositionAttribute,
-      building.vertexPositionBuffer.itemSize,
-      gl.FLOAT,
-      false,
-      0,
-      0
-    );
-  
-    gl.bindBuffer(gl.ARRAY_BUFFER, building.textureCoordBuffer);
-    gl.vertexAttribPointer(
-      shaderProgram.textureCoordAttribute,
-      building.textureCoordBuffer.itemSize,
-      gl.FLOAT,
-      false,
-      0,
-      0
-    );
-  
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, exTexture2);
-    gl.uniform1i(shaderProgram.samplerUniform, 0);
-    gl.uniform1i(shaderProgram.samplerUniform, 0);
-  
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, building.vertexIndexBuffer);
-  
-    setMatrixUniforms();
-    gl.drawElements(
-      gl.TRIANGLES,
-      building.vertexIndexBuffer.numItems,
-      gl.UNSIGNED_SHORT,
-      0
+      gl.bindBuffer(gl.ARRAY_BUFFER, building.vertexPositionBuffer);
+      gl.vertexAttribPointer(
+        shaderProgram.vertexPositionAttribute,
+        building.vertexPositionBuffer.itemSize,
+        gl.FLOAT,
+        false,
+        0,
+        0
+      );
+    
+      gl.bindBuffer(gl.ARRAY_BUFFER, building.textureCoordBuffer);
+      gl.vertexAttribPointer(
+        shaderProgram.textureCoordAttribute,
+        building.textureCoordBuffer.itemSize,
+        gl.FLOAT,
+        false,
+        0,
+        0
+      );
+    
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, exTexture2);
+      gl.uniform1i(shaderProgram.samplerUniform, 0);
+    
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, building.vertexIndexBuffer);
+    
+      setMatrixUniforms();
+      gl.drawElements(
+        gl.TRIANGLES,
+        building.vertexIndexBuffer.numItems,
+        gl.UNSIGNED_SHORT,
+        0
+      );
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, building.top);
+      gl.vertexAttribPointer(
+        shaderProgram.vertexPositionAttribute,
+        building.top.itemSize,
+        gl.FLOAT,
+        false,
+        0,
+        0
+      );
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, building.topTextureCoordBuffer);
+      gl.vertexAttribPointer(
+        shaderProgram.textureCoordAttribute,
+        building.topTextureCoordBuffer.itemSize,
+        gl.FLOAT,
+        false,
+        0,
+        0
+      );
+
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D, exTexture3);
+      gl.uniform1i(shaderProgram.samplerUniform, 1);
+
+      gl.drawElements(
+        gl.TRIANGLES,
+        building.vertexIndexBuffer.numItems,
+        gl.UNSIGNED_SHORT,
+        0
       );
     }
   }
@@ -212,6 +242,35 @@ class Building {
     const height = Math.random() * (maxHeight - minHeight) + minHeight;
 
     this.yMax = this.yMin + height;
+    
+    this.top = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.top);
+    
+    const topVertices = [
+      this.xMin, this.yMax, this.zMin,
+      this.xMax, this.yMax, this.zMin,
+      this.xMax, this.yMax, this.zMax,
+      this.xMin, this.yMax, this.zMax
+    ];
+    
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(topVertices), gl.STATIC_DRAW);
+    this.top.itemSize = 3;
+    this.top.numItems = 4;
+
+    const topTextureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, topTextureCoordBuffer);
+
+    var topTextureCoords = [
+      0.0, 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((width / (maxWidth - minWidth)), 1.0),
+      0.0, Math.min((width / (maxWidth - minWidth)), 1.0),
+    ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(topTextureCoords), gl.STATIC_DRAW);
+    this.topTextureCoordBuffer = topTextureCoordBuffer;
+    this.topTextureCoordBuffer.itemSize = 2;
+    this.topTextureCoordBuffer.numItems = 4;
 
     this.vertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
@@ -228,11 +287,6 @@ class Building {
       this.xMax, this.yMax, this.zMax,
       this.xMax, this.yMin, this.zMax,
   
-      // Top face
-      this.xMin, this.yMax, this.zMax,
-      this.xMin,  this.yMax,  this.zMin,
-      this.xMax,  this.yMax,  this.zMin,
-      this.xMax,  this.yMax, this.zMax,
       /** 
       // Bottom face
       -1.0, -1.0, -1.0,
@@ -271,12 +325,6 @@ class Building {
       Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
-
-      // Top face
-      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
-      0.0, 0.0,
-      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
-      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
 
       // Right face
       Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
