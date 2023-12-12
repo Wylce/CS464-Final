@@ -407,7 +407,8 @@
       var displayTexture;
       var explosionTexture;
       function initTextures(){
-        exTexture = initTexture("box.png", true);
+        exTexture = initTexture("road.png", true);
+        exTexture2 = initTexture("building.png", true);
         displayTexture = initTexture("plane.png", false);
         displayTextureUp = initTexture("planeUp.png", false);
         displayTextureDown = initTexture("planeDown.png", false);
@@ -720,7 +721,7 @@
         deltaY = 0.0;
 
 
-        GplaneTranslate = [0.0, 0.5, 0.0];
+        GplaneTranslate = [0.0, 2, 0.0];
         GplaneTip = mat4.create();
         mat4.identity(GplaneTip);
         GplaneVMat = mat4.lookAt(
@@ -747,7 +748,7 @@
         enemies.push(new enemy(gl, shaderProgram));
         enemies.push(new enemy(gl, shaderProgram));
 
-        gl.clearColor(0.4, 0.4, 0.4, 1.0);
+        gl.clearColor(0.5, 0.5, 0.7, 1.0);
         gl.enable(gl.DEPTH_TEST);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.enable(gl.BLEND);
@@ -1159,6 +1160,7 @@
         if (lastTime != 0) {
           var elapsed = timeNow - lastTime;
           debugMode = document.getElementById("debug-enable").checked;
+          
 
           // Animate each box
           enemies.forEach(enemy => {
@@ -1205,7 +1207,14 @@
     <p>
       <label for="debug-enable"><b>Debug Mode</b>:</label>
       <input type="checkbox" id="debug-enable" name="debug" value="debug">
+    </p>
+    <p>
+      <label for="volumeSlider"><b>Volume:</b></label>
       <input type="range" min="0" max="1" step="0.1" value="1" id="volumeSlider">
+    </p>
+    <p>
+      <label for="drawDistSlider"><b>Draw Distance: </b></label>
+      <input type="range" min="2" max="8" step="1" value="4" id="drawDistSlider">
     </p>
   </body>
 </html>

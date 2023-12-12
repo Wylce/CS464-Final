@@ -1,7 +1,5 @@
-chunkWidth = (100.0 * 1.0) / 50.0 - 1.0;
 var chunkMap;
 var chunkCoords;
-//TODO: fill this with stuff
 var chunksToRender;
 
 var numChunks;
@@ -35,12 +33,44 @@ class Chunk {
     return false;
   }
 
-  generateBuildings(){
-    var testBuilding = new Building(0.0, -1.0, -0.5);
-    testBuilding.id = this.id;
-    this.heightRating = Math.max(Math.abs(this.coordinates[0]), Math.abs(this.coordinates[1]));
-    testBuilding.makeBuildingGeometry(0.2, (this.heightRating % 19) / 10 , 0.2);
-    this.addBuilding(testBuilding);
+  generateBuildings() {
+    var numBuildings = 20;
+    var minWidth = 0.2;
+    var maxWidth = 0.7;
+    var minDistance = 0.6;
+  
+    for (let i = 0; i < numBuildings; i++) {
+      var attempts = 0;
+      var validPosition = false;
+      var randomX;
+      var randomZ;
+  
+      while (!validPosition && attempts < 50) {
+        randomX = Math.random() - 1;
+        randomZ = Math.random() - 1;
+        validPosition = this.isValidBuildingPosition(randomX, randomZ, minDistance);
+        attempts++;
+      }
+  
+      if (validPosition) {
+        var testBuilding = new Building(randomX, -1.0, randomZ);
+        testBuilding.id = this.id;
+        this.heightRating = Math.max(Math.abs(randomX), Math.abs(randomZ));
+        var width = Math.random() * (maxWidth - minWidth) + minWidth;
+        testBuilding.makeBuildingGeometry(width, width);
+        this.addBuilding(testBuilding);
+      }
+    }
+  }
+
+  isValidBuildingPosition(x, z, minDistance) {
+    for (const existingBuilding of this.buildingArray) {
+      var distance = Math.sqrt((x - existingBuilding.xMin) ** 2 + (z - existingBuilding.zMin) ** 2);
+      if (distance < minDistance) {
+        return false;
+      }
+    }
+    return true;
   }
 
   drawBuildings(){
@@ -68,7 +98,7 @@ class Chunk {
     );
   
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, exTexture);
+    gl.bindTexture(gl.TEXTURE_2D, exTexture2);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
   
@@ -171,10 +201,17 @@ class Building {
     );
   }
 
-   makeBuildingGeometry(width, height, depth){
+   makeBuildingGeometry(width, depth){
     this.xMax = this.xMin + width;
-    this.yMax = this.yMin + height;
     this.zMax = this.zMin + depth;
+
+    const minHeight = 0.5;
+    const maxHeight = 3.0;
+    const minWidth = 0.2;
+    const maxWidth = 0.8;
+    const height = Math.random() * (maxHeight - minHeight) + minHeight;
+
+    this.yMax = this.yMin + height;
 
     this.vertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexPositionBuffer);
@@ -224,38 +261,39 @@ class Building {
     gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
     var textureCoords = [
       // Front face
-       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      0.0, 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
 
       // Back face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
 
       // Top face
-      0.0, 1.0,
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
 
       // Right face
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
       0.0, 0.0,
 
-       // Left face
+      // Left face
       0.0, 0.0,
-      1.0, 0.0,
-      1.0, 1.0,
-      0.0, 1.0,
-    ];
+      Math.min((width / (maxWidth - minWidth)), 1.0), 0.0,
+      Math.min((width / (maxWidth - minWidth)), 1.0), Math.min((height / (maxHeight - minHeight)), 1.0),
+      0.0, Math.min((height / (maxHeight - minHeight)), 1.0),
+  ];
+  
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
     this.textureCoordBuffer.itemSize = 2;
-    this.textureCoordBuffer.numItems = 20;
+    this.textureCoordBuffer.numItems = 24;
 
     this.vertexIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
@@ -271,13 +309,6 @@ class Building {
     this.vertexIndexBuffer.itemSize = 1;
     this.vertexIndexBuffer.numItems = 30;
   }
-
-
-}
-
-
-
-function generateBuildings(){
 
 }
 
@@ -295,8 +326,21 @@ function loadRenderSet(drawDistance){
   //var orientation = Math.floor((cameraRotationY % 360) / 90);
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
+  var yOrientation = Math.round(Gdirection[1]);
 
-  for (i = 0; i <= drawDistance; i++){
+  console.log("Y: " + yOrientation);
+
+  if(yOrientation < 0){
+    for (i = drawDistance / -2; i < drawDistance / 2; i++){
+      for (j = drawDistance / -2; j < drawDistance / 2; j++){
+        chunksToRender[cind] = getChunk([chunkCoords[0] + i, chunkCoords[1] + j]);
+        cind++;
+      }
+    }
+    return;
+  }
+
+  for (i = -1; i <= drawDistance; i++){
 
     nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
     nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
@@ -318,6 +362,13 @@ function loadRenderSet(drawDistance){
       //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 2; j <= i + 2; j++){
+        chunksToRender[cind] = getChunk([chunkCoords[0] + j, nextCoords[1]]);
+        cind++;
+        chunksToRender[cind] = getChunk([chunkCoords[0] - j, nextCoords[1]]);
+        cind++;
+      }
     }
 
     if (zOrientation  == 0){
@@ -330,6 +381,13 @@ function loadRenderSet(drawDistance){
       nextCoords[1] = chunkCoords[1] - 1;
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 2; j <= i + 2; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0], chunkCoords[1] + j]);
+        cind++;
+        chunksToRender[cind] = getChunk([nextCoords[0], chunkCoords[1] - j]);
+        cind++;
+      }
     }
 
     if (xOrientation != 0 && zOrientation != 0){
@@ -338,10 +396,21 @@ function loadRenderSet(drawDistance){
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
 
+      for (j = 1; j <= i + 1; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0], nextCoords[1] + (j * zOrientation)]);
+        cind++;
+      }
+
       nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1)) - xOrientation;
       nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 1; j <= i + 1; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0] + (j * xOrientation), nextCoords[1]]);
+        cind++;
+      }
+
     }
   }
 }
@@ -401,44 +470,11 @@ function drawChunk(chunk){
 
 function drawTerrain(){
 
-    loadRenderSet(3);
+  var drawDistance = document.getElementById("drawDistSlider").value;
+
+    loadRenderSet(drawDistance);
 
     chunkOffset = vertexDistance * 98.0 * -1;
-
-    var frontLeft = [chunkOffset, 0.0, chunkOffset];
-    var frontMiddle = [-1.0 * chunkOffset, 0.0, 0.0];
-    var frontRight = [-1.0 * chunkOffset, 0.0, 0.0];
-    var right = [0.0, 0.0, -1.0 * chunkOffset];
-    var left = [2.0 * chunkOffset, 0.0, 0.0];
-    var backLeft = [0.0, 0.0, -1.0 * chunkOffset];
-    var backMiddle = [-1.0 * chunkOffset, 0.0, 0.0];
-    var backRight = [-1.0 * chunkOffset, 0.0, 0.0];
-
-    var chunkOffsets = [frontLeft, frontMiddle, frontRight,
-                    right, left,
-                    backLeft, backMiddle, backRight];
-
-        //drawChunk();
-        
-        //mvMatrix = mat4Copy(matrixStack[0]);
-        //tiles will need to overlap by a vertex on their edge for surface interpolation to look smooth
-        //how far apart are the vertices?
-        //gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
-
-        /*
-        for(i = 0; i < 8; i++){
-            //mvMatrix = mat4Copy(matrixStack[0]);
-            mat4.translate(mvMatrix, chunkOffsets[i]);
-            drawChunk();
-            /*
-            setMatrixUniforms();
-            gl.drawElements(
-                gl.TRIANGLES,
-                terVertexIndexBuffer.numItems,
-                gl.UNSIGNED_SHORT,
-                0
-            );
-        }*/
 
         for (const chunk of chunksToRender){
           drawChunk(chunk);
