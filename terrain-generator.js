@@ -1,6 +1,5 @@
 var chunkMap;
 var chunkCoords;
-//TODO: fill this with stuff
 var chunksToRender;
 
 var numChunks;
@@ -311,13 +310,6 @@ class Building {
     this.vertexIndexBuffer.numItems = 30;
   }
 
-
-}
-
-
-
-function generateBuildings(){
-
 }
 
 function loadRenderSet(drawDistance){
@@ -334,6 +326,19 @@ function loadRenderSet(drawDistance){
   //var orientation = Math.floor((cameraRotationY % 360) / 90);
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
+  var yOrientation = Math.round(Gdirection[1]);
+
+  console.log("Y: " + yOrientation);
+
+  if(yOrientation < 0){
+    for (i = drawDistance / -2; i < drawDistance / 2; i++){
+      for (j = drawDistance / -2; j < drawDistance / 2; j++){
+        chunksToRender[cind] = getChunk([chunkCoords[0] + i, chunkCoords[1] + j]);
+        cind++;
+      }
+    }
+    return;
+  }
 
   for (i = -1; i <= drawDistance; i++){
 
@@ -357,6 +362,13 @@ function loadRenderSet(drawDistance){
       //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 2; j <= i + 2; j++){
+        chunksToRender[cind] = getChunk([chunkCoords[0] + j, nextCoords[1]]);
+        cind++;
+        chunksToRender[cind] = getChunk([chunkCoords[0] - j, nextCoords[1]]);
+        cind++;
+      }
     }
 
     if (zOrientation  == 0){
@@ -369,6 +381,13 @@ function loadRenderSet(drawDistance){
       nextCoords[1] = chunkCoords[1] - 1;
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 2; j <= i + 2; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0], chunkCoords[1] + j]);
+        cind++;
+        chunksToRender[cind] = getChunk([nextCoords[0], chunkCoords[1] - j]);
+        cind++;
+      }
     }
 
     if (xOrientation != 0 && zOrientation != 0){
@@ -377,10 +396,21 @@ function loadRenderSet(drawDistance){
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
 
+      for (j = 1; j <= i + 1; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0], nextCoords[1] + (j * zOrientation)]);
+        cind++;
+      }
+
       nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1)) - xOrientation;
       nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
+
+      for (j = 1; j <= i + 1; j++){
+        chunksToRender[cind] = getChunk([nextCoords[0] + (j * xOrientation), nextCoords[1]]);
+        cind++;
+      }
+
     }
   }
 }
@@ -440,44 +470,11 @@ function drawChunk(chunk){
 
 function drawTerrain(){
 
-    loadRenderSet(3);
+  var drawDistance = document.getElementById("drawDistSlider").value;
+
+    loadRenderSet(drawDistance);
 
     chunkOffset = vertexDistance * 98.0 * -1;
-
-    var frontLeft = [chunkOffset, 0.0, chunkOffset];
-    var frontMiddle = [-1.0 * chunkOffset, 0.0, 0.0];
-    var frontRight = [-1.0 * chunkOffset, 0.0, 0.0];
-    var right = [0.0, 0.0, -1.0 * chunkOffset];
-    var left = [2.0 * chunkOffset, 0.0, 0.0];
-    var backLeft = [0.0, 0.0, -1.0 * chunkOffset];
-    var backMiddle = [-1.0 * chunkOffset, 0.0, 0.0];
-    var backRight = [-1.0 * chunkOffset, 0.0, 0.0];
-
-    var chunkOffsets = [frontLeft, frontMiddle, frontRight,
-                    right, left,
-                    backLeft, backMiddle, backRight];
-
-        //drawChunk();
-        
-        //mvMatrix = mat4Copy(matrixStack[0]);
-        //tiles will need to overlap by a vertex on their edge for surface interpolation to look smooth
-        //how far apart are the vertices?
-        //gl.bindTexture(gl.TEXTURE_2D, explosionTexture);
-
-        /*
-        for(i = 0; i < 8; i++){
-            //mvMatrix = mat4Copy(matrixStack[0]);
-            mat4.translate(mvMatrix, chunkOffsets[i]);
-            drawChunk();
-            /*
-            setMatrixUniforms();
-            gl.drawElements(
-                gl.TRIANGLES,
-                terVertexIndexBuffer.numItems,
-                gl.UNSIGNED_SHORT,
-                0
-            );
-        }*/
 
         for (const chunk of chunksToRender){
           drawChunk(chunk);

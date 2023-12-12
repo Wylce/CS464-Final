@@ -969,6 +969,7 @@
         if (lastTime != 0) {
           var elapsed = timeNow - lastTime;
           debugMode = document.getElementById("debug-enable").checked;
+          
 
           // here we could change variables to adjust rotations for animation
         }
@@ -999,7 +1000,14 @@
     <p>
       <label for="debug-enable"><b>Debug Mode</b>:</label>
       <input type="checkbox" id="debug-enable" name="debug" value="debug">
+    </p>
+    <p>
+      <label for="volumeSlider"><b>Volume:</b></label>
       <input type="range" min="0" max="1" step="0.1" value="1" id="volumeSlider">
+    </p>
+    <p>
+      <label for="drawDistSlider"><b>Draw Distance: </b></label>
+      <input type="range" min="2" max="8" step="1" value="4" id="drawDistSlider">
     </p>
   </body>
 </html>
