@@ -93,8 +93,13 @@ function handleKeyDown(event) {
 
   if (keys["f"]) {
     isShooting = true;
+    //var ray = new Ray(GplaneTranslate, Gdirection);
+
+    for (const enemy of enemies){
+      enemy.checkHit(GplaneTranslate, Gdirection);
+    }
   }
-console.log(isShooting);
+//console.log(isShooting);
   if (debugMode){
     if (keys["+"] || keys["="]) {
       zoom(1.5);

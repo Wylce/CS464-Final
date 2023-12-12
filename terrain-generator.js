@@ -194,6 +194,7 @@ class Building {
   }
 
   checkIfContains(point){
+    return false;
     return (
       point[0] >= this.xMin && point[0] <= this.xMax &&
       point[1] >= this.yMin && point[1] <= this.yMax &&
@@ -327,8 +328,6 @@ function loadRenderSet(drawDistance){
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
   var yOrientation = Math.round(Gdirection[1]);
-
-  console.log("Y: " + yOrientation);
 
   if(yOrientation < 0){
     for (i = drawDistance / -2; i < drawDistance / 2; i++){
@@ -465,7 +464,7 @@ function drawChunk(chunk){
     0
   );
 
-  chunk.drawBuildings();
+  //chunk.drawBuildings();
 }
 
 function drawTerrain(){

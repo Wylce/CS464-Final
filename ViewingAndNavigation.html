@@ -16,6 +16,7 @@
     <script type="text/javascript" src="webgl-utils.js"></script>
     <script type="text/javascript" src="terrain-generator.js"></script>
     <script type="text/javascript" src="mouse_utils.js"></script>
+    <script type="text/javascript" src="enemies.js"></script>
 
     <!-- define our shaders -->
     <script id="shader-fs" type="x-shader/x-fragment">
@@ -396,6 +397,21 @@
         terRectIndexBuffer.numItems = 6;
       }
 
+      function vec3TransformMat4(out, vecIn, matrix){
+        var x = vecIn[0];
+        var y = vecIn[1];
+        var z = vecIn[2];
+
+        let w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15];
+        w = w || 1.0;
+
+        out[0] = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) / w;
+        out[1] = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) / w;
+        out[2] = (matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]) / w;
+
+        return out;
+      }
+
       function mat4Copy(matrix){
         var newMatrix = mat4.create();
         mat4.identity(newMatrix);
@@ -518,181 +534,7 @@
         gl.deleteFramebuffer(framebuffer);
       }
 
-      class enemy {
-        constructor(gl, shaderProgram) {
-            this.gl = gl;
-            this.shaderProgram = shaderProgram;
-            this.position = {
-                x: Math.random() * 40, // Random x between 0 and 20
-                y: Math.random() * 40, // Random y between 0 and 20
-                z: -60 // Random z between -10 and -25
-            };
-            this.speed = {
-                x: Math.random() * 0.012, 
-                y: Math.random() * 0.012, 
-                z: -0.005};
-            this.rotation = {x: 0, y: 0, z: 0};
-            this.health = 100;
-            this.isActive = true;
-            this.respawnTimer = 0;
-            this.initBuffers();
-        }
-
-        initBuffers() {
-            // Initialize vertex buffer (enemyVertexPositionBuffer)
-            this.vertexPositionBuffer = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            let vertices = [
-                // Front face
-                -1.0, -1.0,  1.0,
-                1.0, -1.0,  1.0,
-                1.0,  1.0,  1.0,
-                -1.0,  1.0,  1.0,
-
-                // Back face
-                -1.0, -1.0, -1.0,
-                -1.0,  1.0, -1.0,
-                1.0,  1.0, -1.0,
-                1.0, -1.0, -1.0,
-
-                // Top face
-                -1.0,  1.0, -1.0,
-                -1.0,  1.0,  1.0,
-                1.0,  1.0,  1.0,
-                1.0,  1.0, -1.0,
-
-                // Bottom face
-                -1.0, -1.0, -1.0,
-                1.0, -1.0, -1.0,
-                1.0, -1.0,  1.0,
-                -1.0, -1.0,  1.0,
-
-                // Right face
-                1.0, -1.0, -1.0,
-                1.0,  1.0, -1.0,
-                1.0,  1.0,  1.0,
-                1.0, -1.0,  1.0,
-
-                // Left face
-                -1.0, -1.0, -1.0,
-                -1.0, -1.0,  1.0,
-                -1.0,  1.0,  1.0,
-                -1.0,  1.0, -1.0,
-            ];
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-            this.vertexPositionBuffer.itemSize = 3;
-            this.vertexPositionBuffer.numItems = 24;
-
-            // Initialize texture coord buffer (enemyVertexTextureCoordBuffer)
-            this.vertexTextureCoordBuffer = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            let textureCoords = [
-                // Front face
-                0.0, 0.0,
-                1.0, 0.0,
-                1.0, 1.0,
-                0.0, 1.0,
-
-                
-                ];
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoords), this.gl.STATIC_DRAW);
-            this.vertexTextureCoordBuffer.itemSize = 2;
-            this.vertexTextureCoordBuffer.numItems = 24;
-
-            // Initialize index buffer (enemyVertexIndexBuffer)
-            this.vertexIndexBuffer = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
-            let enemyVertexIndices = [
-                0, 1, 2,      0, 2, 3,    // Front face
-                4, 5, 6,      4, 6, 7,    // Back face
-                8, 9, 10,     8, 10, 11,  // Top face
-                12, 13, 14,   12, 14, 15, // Bottom face
-                16, 17, 18,   16, 18, 19, // Right face
-                20, 21, 22,   20, 22, 23  // Left face
-            ];
-            this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(enemyVertexIndices), this.gl.STATIC_DRAW);
-            this.vertexIndexBuffer.itemSize = 1;
-            this.vertexIndexBuffer.numItems = 36;
-        }
-
-        // Example of taking damage
-        // enemies[0].takeDamage(20);
-        takeDamage(amount) {
-            this.health -= amount;
-            if (this.health <= 0) {
-                this.handleDestruction();
-            }
-        }
-
-        handleDestruction() {
-            // Handle what happens when health reaches 0
-            // e.g., remove from scene, change appearance, etc.
-            this.isActive = false;
-            this.respawnTimer = 5000;
-            console.log("enemy destroyed");
-        }
-        
-        reset() {
-            this.isActive = true;
-            this.health = 100;
-            this.position = {
-                x: Math.random() * 40,
-                y: Math.random() * 40,
-                z: -60
-            };
-            this.respawnTimer = 0;
-        }
-
-        animate(elapsed) {
-            // Update position and rotation based on speed
-            this.position.x += this.speed.x * elapsed;
-            this.position.y += this.speed.y * elapsed;
-            this.position.z -= this.speed.z * elapsed;
-            this.rotation.x += 0.00; // Example rotation speed, adjust as needed
-            this.rotation.y += 0.00;
-            this.rotation.z += 0.00;
-            
-            // Reset enemy position if it reaches z = 50
-            if (this.position.z >= -3) {
-                this.position.z = -60; // Reset to initial random z position
-            }
-            if (this.position.x > 10 || this.position.x < -10) {
-                this.speed.x = -this.speed.x;
-                this.position.x = Math.max(-10, Math.min(this.position.x, 10));
-            }
-            if (this.position.y > 30 || this.position.y < -10) {
-                this.speed.y = -this.speed.y;
-                this.position.y = Math.max(-10, Math.min(this.position.y, 30));
-            }
-            //if (this.position.z > 2 || this.position.z < -2) {
-            //    this.speed.z = -this.speed.z;
-            //    this.position.z = Math.max(-10, Math.min(this.position.z, 1));
-            //}
-        }
-
-        draw() {
-            let mvMatrix = mat4.create();
-            mat4.identity(mvMatrix);
-            mat4.translate(mvMatrix, [this.position.x, this.position.y, this.position.z]);
-            mat4.rotate(mvMatrix,  this.rotation.x, [1, 0, 0]);
-            mat4.rotate(mvMatrix,  this.rotation.y, [0, 1, 0]);
-            mat4.rotate(mvMatrix,  this.rotation.z, [0, 0, 1]);
-
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexPositionBuffer);
-            this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.vertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-
-            gl.activeTexture(gl.TEXTURE0);
-            gl.bindTexture(gl.TEXTURE_2D, exTexture);
-            gl.uniform1i(shaderProgram.samplerUniform, 0);
-
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexTextureCoordBuffer);
-            this.gl.vertexAttribPointer(this.shaderProgram.textureCoordAttribute, this.vertexTextureCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-
-            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.vertexIndexBuffer);
-            this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform, false, mvMatrix);
-            this.gl.drawElements(this.gl.TRIANGLES, this.vertexIndexBuffer.numItems, this.gl.UNSIGNED_SHORT, 0);
-        }
-    }
+      
 
     var enemies = [];
 
@@ -746,7 +588,7 @@
         document.onmousemove = handleMouseMove;
 
         enemies.push(new enemy(gl, shaderProgram));
-        enemies.push(new enemy(gl, shaderProgram));
+        //enemies.push(new enemy(gl, shaderProgram));
 
         gl.clearColor(0.5, 0.5, 0.7, 1.0);
         gl.enable(gl.DEPTH_TEST);
@@ -806,14 +648,22 @@
         matrixStack[0] = (mat4Copy(mvMatrix));
         drawTerrain();
 
-        mvMatrix = mat4Copy(matrixStack[0]);
-        drawDisplay();
+        shaderProgram = entityShader;
+        gl.useProgram(shaderProgram);
 
         enemies.forEach(enemy => {
             if (enemy.isActive) { // Check if the enemy is active
                 enemy.draw();
             }
         });
+
+        mvMatrix = mat4Copy(matrixStack[0]);
+        drawDisplay();
+
+        
+        
+
+        mvMatrix = mat4Copy(matrixStack[0]);
       }
 
       //Draws a rectangle to put a cockpit texture on
@@ -1164,6 +1014,8 @@
 
           // Animate each box
           enemies.forEach(enemy => {
+            enemy.animate(elapsed);
+            /*
                 if (enemy.isActive) {
                     enemy.animate(elapsed);
                 } else {
@@ -1172,13 +1024,14 @@
                     if (enemy.respawnTimer <= 0) {
                         enemy.reset(); // Reset the enemy once the timer expires
                     }
-                }
+                }*/
             });
 
+            /*
             if (timeNow - lastDamageTime > 5000) {
                 enemies[0].takeDamage(99);
                 lastDamageTime = timeNow;
-            }
+            }*/
         }
         lastTime = timeNow;
       }
