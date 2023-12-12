@@ -776,6 +776,9 @@
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        shaderProgram = entityShader;
+        gl.useProgram(shaderProgram);
+
         // set up the projection matrix
         mat4.perspective(
           45,
@@ -806,13 +809,14 @@
         drawTerrain();
 
         mvMatrix = mat4Copy(matrixStack[0]);
-        drawDisplay();
 
         enemies.forEach(enemy => {
             if (enemy.isActive) { // Check if the enemy is active
                 enemy.draw();
             }
         });
+
+        drawDisplay();
       }
 
       //Draws a rectangle to put a cockpit texture on
