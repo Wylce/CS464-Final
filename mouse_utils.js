@@ -51,12 +51,15 @@ function checkCollision() {
       chunkCoords = [0, 0];
 
       Gspeed = 0.005;
-    }
-    else {
+    } else {
       timerCurrent += 1;
     }
   }
-  if ((GplaneTranslate[1] <= -1.0 || liveChunk.checkIntersection(GplaneTranslate)) && displayExplosion == false) {
+  if (
+    (GplaneTranslate[1] <= -1.0 ||
+      liveChunk.checkIntersection(GplaneTranslate)) &&
+    displayExplosion == false
+  ) {
     displayExplosion = true;
   }
 }
@@ -79,11 +82,10 @@ function handleKeyDown(event) {
 
   if (keys["w"]) {
     isAccelerating = true;
-  }
-  else if (keys["s"]) {
+  } else if (keys["s"]) {
     isBraking = true;
   }
-  
+
   if (keys["Shift"]) {
     if (!isBoosting && !isBoostDelayed) {
       isBoosting = true;
@@ -94,13 +96,13 @@ function handleKeyDown(event) {
   if (keys["f"]) {
     isShooting = true;
   }
-console.log(isShooting);
-  if (debugMode){
+  console.log(isShooting);
+  if (debugMode) {
     if (keys["+"] || keys["="]) {
       zoom(1.5);
     } else if (keys["-"]) {
       zoom(0.5);
-    } 
+    }
   }
 }
 
@@ -112,8 +114,7 @@ function handleKeyUp(event) {
   }
   if (event.key == "w") {
     isAccelerating = false;
-  }
-  else if (event.key == "s") {
+  } else if (event.key == "s") {
     isBraking = false;
   }
 }
@@ -199,9 +200,7 @@ var mouseSensitivity = 0.8;
 function handleMouseMove(event) {
   if (!mouseDown) {
     return;
-  }
-
-  else if (numCalls == 0) {
+  } else if (numCalls == 0) {
     Gspeed = 0.005;
   }
 
@@ -214,32 +213,30 @@ function handleMouseMove(event) {
   // console.log('Y: ', deltaY);
   // console.log('X: ', deltaX);
 
-
-  if (debugMode){
-    if (mouseButton == 2){
+  if (debugMode) {
+    if (mouseButton == 2) {
       var newRotationMatrix = mat4.create();
       mat4.identity(newRotationMatrix);
-      mat4.rotate(newRotationMatrix, degToRad (deltaX/10), [0,1,0]);
+      mat4.rotate(newRotationMatrix, degToRad(deltaX / 10), [0, 1, 0]);
 
-      mat4.rotate(newRotationMatrix, degToRad(deltaY/10), [1,0,0]);
+      mat4.rotate(newRotationMatrix, degToRad(deltaY / 10), [1, 0, 0]);
       mat4.multiply(newRotationMatrix, objRotTransMat, objRotTransMat);
-  }
+    }
 
-    if (mouseButton == 0){
+    if (mouseButton == 0) {
       var translation = vec3.create();
-      translation = [deltaX/200.0, -1*(deltaY/200.0), 0.0]
+      translation = [deltaX / 200.0, -1 * (deltaY / 200.0), 0.0];
       var newTranslationMatrix = mat4.create();
       mat4.identity(newTranslationMatrix);
       mat4.translate(newTranslationMatrix, translation);
       mat4.multiply(newTranslationMatrix, objRotTransMat, objRotTransMat);
     }
   } else {
-
     //TODO: try and fix the way rotation reverses when it goes past 180 degrees
 
     cameraRotationY += deltaX;
     cameraRotationX = Math.min(cameraRotationX + deltaY, 90);
-    if (cameraRotationX <= -90){
+    if (cameraRotationX <= -90) {
       cameraRotationX = -90;
     }
     //cameraRotationX = Math.max(cameraRotationX + deltaY, 0);
@@ -259,8 +256,8 @@ function zoom(factor) {
   mat4.identity(newZoomMatrix);
   var sf = 1.0 * factor;
   // console.log(sf);
-  
-  mat4.scale(newZoomMatrix, [sf,sf,sf]);
+
+  mat4.scale(newZoomMatrix, [sf, sf, sf]);
   mat4.multiply(newZoomMatrix, objRotTransMat, objRotTransMat);
 }
 
@@ -272,12 +269,11 @@ function genViewMatrix() {
   // checks if accelerating and increases speed
   if (isAccelerating && Gspeed < 0.01) {
     Gspeed += acceleration;
-  } 
+  }
   // checks if decelerating and decreases speed
   else if (!isAccelerating && !isBoosting && Gspeed > 0) {
     Gspeed -= deceleration;
-  }
-  else if (!isBoosting && Gspeed > 0.01) {
+  } else if (!isBoosting && Gspeed > 0.01) {
     Gspeed -= deceleration * 2;
   }
 
@@ -310,13 +306,13 @@ function genViewMatrix() {
 
   // checks if the speed is low enough to stall and if the user isnt accelerating
   if (Gspeed < 0.005 && isAccelerating == false) {
-    var decreaseAmount = (1 / Gspeed / 500);
+    var decreaseAmount = 1 / Gspeed / 500;
     // console.log(decreaseAmount);
     // rotates the camera to make it seem as if the plane is stalling
     cameraRotationX = Math.max(cameraRotationX - decreaseAmount, -90);
     // console.log(cameraRotationX);
   }
-  
+
   // if stalling make the plane fall out of sky
   if (Gspeed < 0.005) {
     stallAmount = Math.min(Math.exp(stallStrength * -Gspeed), 0.005);
@@ -333,7 +329,7 @@ function genViewMatrix() {
 
   if (GplaneTranslate[0] >= 1.0) {
     GplaneTranslate[0] = -0.99;
-    enterChunk([chunkCoords[0] - 1, chunkCoords[1]])
+    enterChunk([chunkCoords[0] - 1, chunkCoords[1]]);
   }
   if (GplaneTranslate[2] >= 1.0) {
     GplaneTranslate[2] = -0.99;
@@ -353,16 +349,16 @@ function genViewMatrix() {
   // console.log(Gdirection[0]);
 
   mat4.identity(GplaneVMat);
-    mat4.lookAt(
-      GplaneTranslate,
-      [
-        GplaneTranslate[0] + Gdirection[0],
-        GplaneTranslate[1] + Gdirection[1],
-        GplaneTranslate[2] + Gdirection[2],
-      ],
-      rotate,
-      GplaneVMat
-    );
+  mat4.lookAt(
+    GplaneTranslate,
+    [
+      GplaneTranslate[0] + Gdirection[0],
+      GplaneTranslate[1] + Gdirection[1],
+      GplaneTranslate[2] + Gdirection[2],
+    ],
+    rotate,
+    GplaneVMat
+  );
   checkCollision();
 }
 
@@ -397,18 +393,18 @@ function getNormal(x, z) {
   return rn;
 }
 function getplaneDirection(tnormal) {
-    var forwardDirection = vec3.create();
-    forwardDirection[0] = 0.0;
-    forwardDirection[2] = 1.0;
-    forwardDirection[1] = 0.0;
-  
-    var newRotationMatrix = mat4.create();
-    mat4.identity(newRotationMatrix);
-  
-    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
-    mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
-  
-    forwardDirection = mat4.multiplyVec3(newRotationMatrix, forwardDirection);
-  
-    return forwardDirection;
-  }
+  var forwardDirection = vec3.create();
+  forwardDirection[0] = 0.0;
+  forwardDirection[2] = 1.0;
+  forwardDirection[1] = 0.0;
+
+  var newRotationMatrix = mat4.create();
+  mat4.identity(newRotationMatrix);
+
+  mat4.rotate(newRotationMatrix, -degToRad(cameraRotationY), [0, 1, 0]);
+  mat4.rotate(newRotationMatrix, -degToRad(cameraRotationX), [1, 0, 0]);
+
+  forwardDirection = mat4.multiplyVec3(newRotationMatrix, forwardDirection);
+
+  return forwardDirection;
+}
