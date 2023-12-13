@@ -817,7 +817,6 @@
           if (deltaXRepeatCount >= resetThreshold) {
             banking = banking + 0.1 * (-banking);
             deltaXRepeatCount = 0;
-            deltaX = deltaX + 0.1 * (-deltaX);
           }
         } else if (banking >= -90 && banking <= 90) {
           deltaXRepeatCount = 0;
