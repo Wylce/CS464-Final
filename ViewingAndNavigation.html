@@ -128,8 +128,6 @@
       void main(void) {
           vVertexNormal = aVertexNormal;
 
-          //vPlaneHeight = uPlanePosition[1];
-
           nVertexPosition[0] = aVertexPosition[0];
           nVertexPosition[1] = -1.0;
           nVertexPosition[2] = aVertexPosition[2];
@@ -837,15 +835,11 @@
         );
 
         mat4.identity(mvMatrix);
-        //mat4.scale(mvMatrix, [0.3, 0.3, 0.3]);
         genViewMatrix();
-        //mat4.scale(GplaneVMat, [0.3, 0.3, 0.3]);
-        //mat4.scale(GplaneTranslate, [0.3, 0.3, 0.3]);
         if (debugMode) {
           var initMatrix = mat4.create();
           mat4.identity(initMatrix);
           mat4.translate(initMatrix, [0.0, 0.0, -3.0]);
-          //mat4.rotate(initMatrix, 1.0, [1,0,0]);
           mat4.multiply(mvMatrix, initMatrix);
           mat4.multiply(mvMatrix, objRotTransMat);
         } else {
@@ -853,7 +847,6 @@
         }
 
         gl.uniform1i(shaderProgram.isPlane, 0);
-        console.log(GplaneTranslate[1]);
         gl.uniform3fv(shaderProgram.ambientLight, [0.5, 0.6, 0.6]);
 
         gl.uniform3fv(shaderProgram.directionalLightColor, [0.7, 0.7, 0.4]);

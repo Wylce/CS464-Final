@@ -3,10 +3,6 @@ var chunkCoords;
 var chunksToRender;
 
 var numChunks;
-
-//https://www.playfuljs.com/realistic-terrain-in-130-lines/
-//https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection
-
 var heightMap;
 
 class Chunk {
@@ -473,21 +469,12 @@ class Building {
 
 function loadRenderSet(drawDistance) {
   chunksToRender = [];
-  //chunksToRender[0] = getChunk(chunkCoords) //add the active chunk
   var cind = 0;
 
   var nextCoords = [];
-  //nextCoords[0] = chunkCoords[0];
-  //nextCoords[1] = chunkCoords[1] + 1;
-  //chunksToRender[1] = getChunk(nextCoords);
-
-  //var orientation = Math.floor((cameraRotationY % 360) / 90);
   var xOrientation = Math.round(Gdirection[0]);
   var zOrientation = Math.round(Gdirection[2]);
-  //var yOrientation = Math.round(Gdirection[1]);
   var yOrientation = Gdirection[1];
-
-  console.log("Y: " + yOrientation);
 
   if (yOrientation < -0.8) {
     for (i = drawDistance / -2; i < drawDistance / 2; i++) {
@@ -508,19 +495,15 @@ function loadRenderSet(drawDistance) {
     chunksToRender[cind] = getChunk(nextCoords);
     cind++;
 
-    //Trying to think of a way to optimize, maybe calculate an offset?
-    //Having trouble getting around how it switches which coordinate gets subtracted
     var xOffset;
     var zOffset;
 
     if (xOrientation == 0) {
       nextCoords[0] = chunkCoords[0] + 1;
-      //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
 
       nextCoords[0] = chunkCoords[0] - 1;
-      //nextCoords[1] = chunkCoords[1] + (i * (zOrientation * -1));
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
 
@@ -533,12 +516,10 @@ function loadRenderSet(drawDistance) {
     }
 
     if (zOrientation == 0) {
-      //nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
       nextCoords[1] = chunkCoords[1] + 1;
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
 
-      //nextCoords[0] = chunkCoords[0] + (i * (xOrientation * -1));
       nextCoords[1] = chunkCoords[1] - 1;
       chunksToRender[cind] = getChunk(nextCoords);
       cind++;
